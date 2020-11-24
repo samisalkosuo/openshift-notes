@@ -112,7 +112,7 @@ Services required by OpenShift are ready and we can start OpenShift installation
     DEBUG Bootstrap Complete: 25m10s
     INFO Time elapsed: 25m10s
 ```
-** Note the last lines, it should indicate success.
+* Note the last lines, it should indicate success.
 * As instructed, remove bootstrap-node:
 ** Login to haproxy and create new haproxy without bootstrap:
 ** `systemctl stop ocp-haproxy`
