@@ -7,8 +7,8 @@ set -e
 
 function usage
 {
-  echo "Usage: $0 <OPENSHIFT_RELEASE> <OPENSHIFT_VERSION>"
-  echo "For example: $0 4.6 4.6.1"
+  echo "Usage: $0 <OPENSHIFT_RELEASE> <OPENSHIFT_VERSION> <kernel | initramfs | rootfs>"
+  echo "For example: $0 4.6 4.6.1 kernel"
   echo ""
   echo "Find correct RHCOS release and version from"
   echo "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/"
@@ -25,8 +25,15 @@ if [[ "$2" == "" ]]; then
   usage
 fi
 
+if [[ "$3" == "" ]]; then
+  echo "Download missing (kernel, initramfs or rootfs)."
+  usage
+fi
+
+
 __release=$1
 __version=$2
+__pkg=$3
 __architecture=x86_64
 __dir=/var/www/apache
 
@@ -49,12 +56,21 @@ function download
   #curl ${__dlurl}/$1 > ${__dir}/$1
 }
 
-echo "Downloading RHCOS ${__version} kernel..."
-download rhcos-${__version}-${__architecture}-live-kernel-${__architecture}
-echo "Downloading RHCOS ${__version} initramfs..."
-download rhcos-${__version}-${__architecture}-live-initramfs.${__architecture}.img
-echo "Downloading RHCOS ${__version} rootfs..."
-download rhcos-${__version}-${__architecture}-live-rootfs.${__architecture}.img
+if [[ "$__pkg" == "kernel" ]]; then
+  echo "Downloading RHCOS ${__version} kernel..."
+  download rhcos-${__version}-${__architecture}-live-kernel-${__architecture}
+fi
+
+if [[ "$__pkg" == "initramfs" ]]; then
+  echo "Downloading RHCOS ${__version} initramfs..."
+  download rhcos-${__version}-${__architecture}-live-initramfs.${__architecture}.img
+fi
+
+if [[ "$__pkg" == "rootfs" ]]; then
+  echo "Downloading RHCOS ${__version} rootfs..."
+  download rhcos-${__version}-${__architecture}-live-rootfs.${__architecture}.img
+fi
+
 
 
 

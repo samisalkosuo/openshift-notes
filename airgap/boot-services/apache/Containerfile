@@ -8,7 +8,9 @@ ARG OCP_VERSION
 COPY download_rhcos_binaries.sh .
 
 #download RHCOS images to /var/www/html
-RUN sh download_rhcos_binaries.sh ${OCP_RELEASE} ${OCP_VERSION}
+RUN sh download_rhcos_binaries.sh ${OCP_RELEASE} ${OCP_VERSION} kernel
+RUN sh download_rhcos_binaries.sh ${OCP_RELEASE} ${OCP_VERSION} initramfs
+RUN sh download_rhcos_binaries.sh ${OCP_RELEASE} ${OCP_VERSION} rootfs
 
 EXPOSE 80
 
