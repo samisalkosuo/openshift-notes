@@ -45,8 +45,11 @@ function usage
   echo "    create-haproxy-server-wob    - create HAProxy server image without bootstrap"
   echo "    get-kubeterminal             - download KubeTerminal tool"
   echo "    prepare-bastion              - prepare bastion from dist packages"
-  echo "    start-services               - start services"
-  echo "    stop-services                - stop services"
+  echo "    start-services               - start systemd-services"
+  echo "    stop-services                - stop systemd-services"
+  echo "    enable-services              - enable systemd-services"
+  echo "    disable-services             - disable systemd-services"
+  echo "    status-services              - show status of systemd-services"
   echo "    prepare-haproxy              - prepare haproxy from dist packages"  
   echo "    firewall-open                - open firewall for NTP, DNS, DHCP, TFTP"
   echo "    firewall-close               - close firewall for NTP, DNS, DHCP, TFTP"
@@ -266,36 +269,62 @@ function serviceOperation
   if [ $? -eq 0 ];  then
     #service exists, do operation
     echo "$op $svc service..."
-    systemctl $op $svc
+    local __options=""
+    if [[ "$op" == "status" ]]; then
+      __options=--no-pager
+    fi
+
+    systemctl $__options $op $svc
   else
     echo "service $svc does not exist"
   fi
   set -e
 }
 
+function doServiceOperation
+{
+  local __systemctlOperation=$1
+  local __role=jump_and_bastion
+
+  if [[ "$OCP_OMG_SERVER_ROLE" == "haproxy" ]]; then
+    __role=haproxy
+  fi
+
+  if [[ "$__role" == "jump_and_bastion" ]]; then
+    serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_APACHE_RHCOS
+    serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_APACHE_IGNITION
+    serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_MIRROR_REGISTRY
+    serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_NTP_SERVER
+    serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_DNS_SERVER
+    serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_DHCPPXE_SERVER
+  fi
+  
+  if [[ "$__role" == "haproxy" ]]; then
+    serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_HAPROXY_SERVER
+  fi
+
+}
+
 if [[ "${__operation}" == "start-services" ]]; then
-  check_role "jump bastion"
-
-  serviceOperation start $OCP_SERVICE_NAME_APACHE_RHCOS
-  serviceOperation start $OCP_SERVICE_NAME_APACHE_IGNITION
-  serviceOperation start $OCP_SERVICE_NAME_MIRROR_REGISTRY
-  serviceOperation start $OCP_SERVICE_NAME_NTP_SERVER
-  serviceOperation start $OCP_SERVICE_NAME_DNS_SERVER
-  serviceOperation start $OCP_SERVICE_NAME_DHCPPXE_SERVER
-
+  doServiceOperation start
 fi
 
 if [[ "${__operation}" == "stop-services" ]]; then
-  check_role "jump bastion"
-
-  serviceOperation stop $OCP_SERVICE_NAME_APACHE_RHCOS  
-  serviceOperation stop $OCP_SERVICE_NAME_APACHE_IGNITION
-  serviceOperation stop $OCP_SERVICE_NAME_MIRROR_REGISTRY
-  serviceOperation stop $OCP_SERVICE_NAME_NTP_SERVER
-  serviceOperation stop $OCP_SERVICE_NAME_DNS_SERVER
-  serviceOperation stop $OCP_SERVICE_NAME_DHCPPXE_SERVER
-
+  doServiceOperation stop
 fi
+
+if [[ "${__operation}" == "enable-services" ]]; then
+  doServiceOperation enable
+fi
+
+if [[ "${__operation}" == "disable-services" ]]; then
+  doServiceOperation disable
+fi
+
+if [[ "${__operation}" == "status-services" ]]; then
+  doServiceOperation status
+fi
+
 
 if [[ "${__operation}" == "prepare-bastion" ]]; then
   check_role bastion 
