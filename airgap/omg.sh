@@ -1,32 +1,6 @@
 #!/bin/bash
 
-#this script installs or packages prereq packages
-
-function usageEnv
-{
-  echo "$1 env variable missing."
-  exit 1
-}
-
-if [[ "$OCP_OMG_SERVER_ROLE" == "" ]]; then
-  usageEnv OCP_OMG_SERVER_ROLE
-fi
-
-set -e 
-
-#prereq packages
-__packages="podman jq nmap ntpstat bash-completion httpd-tools curl wget tmux net-tools nfs-utils python3 git"
-if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]]; then
-  #add packages when in jump server
-  __packages="${__packages} yum-utils createrepo libmodulemd modulemd-tools"
-fi
-
-if [[ "$OCP_OMG_SERVER_ROLE" == "haproxy" ]]; then
-  #only podman needed for haproxy
-  __packages="podman"
-fi
-
-
+#this script, and others, help to install OpenShift and supporting services
 
 function usage
 {
@@ -58,6 +32,31 @@ function usage
   echo "    create-dist-packages         - create packages for distribution to bastion"
   exit 1
 }
+
+function usageEnv
+{
+  echo "$1 env variable missing."
+  exit 1
+}
+
+if [[ "$OCP_OMG_SERVER_ROLE" == "" ]]; then
+  usageEnv OCP_OMG_SERVER_ROLE
+fi
+
+set -e 
+
+#prereq packages
+__packages="podman jq nmap ntpstat bash-completion httpd-tools curl wget tmux net-tools nfs-utils python3 git"
+if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]]; then
+  #add packages when in jump server
+  __packages="${__packages} yum-utils createrepo libmodulemd modulemd-tools"
+fi
+
+if [[ "$OCP_OMG_SERVER_ROLE" == "haproxy" ]]; then
+  #only podman needed for haproxy
+  __packages="podman"
+fi
+
 
 if [[ "$1" == "" ]]; then
   echo "Operation is missing."
