@@ -45,11 +45,11 @@ function usage
   echo "    create-haproxy-server-wob    - create HAProxy server image without bootstrap"
   echo "    get-kubeterminal             - download KubeTerminal tool"
   echo "    prepare-bastion              - prepare bastion from dist packages"
-  echo "    start-services               - start systemd-services"
-  echo "    stop-services                - stop systemd-services"
-  echo "    enable-services              - enable systemd-services"
-  echo "    disable-services             - disable systemd-services"
-  echo "    status-services              - show status of systemd-services"
+  echo "    svc-start                    - start systemd-services"
+  echo "    svc-stop                     - stop systemd-services"
+  echo "    svc-enable                   - enable systemd-services"
+  echo "    svc-disable                  - disable systemd-services"
+  echo "    svc-status                   - show status of systemd-services"
   echo "    prepare-haproxy              - prepare haproxy from dist packages"  
   echo "    firewall-open                - open firewall for NTP, DNS, DHCP, TFTP"
   echo "    firewall-close               - close firewall for NTP, DNS, DHCP, TFTP"
@@ -305,23 +305,23 @@ function doServiceOperation
 
 }
 
-if [[ "${__operation}" == "start-services" ]]; then
+if [[ "${__operation}" == "svc-start" ]]; then
   doServiceOperation start
 fi
 
-if [[ "${__operation}" == "stop-services" ]]; then
+if [[ "${__operation}" == "svc-stop" ]]; then
   doServiceOperation stop
 fi
 
-if [[ "${__operation}" == "enable-services" ]]; then
+if [[ "${__operation}" == "svc-enable" ]]; then
   doServiceOperation enable
 fi
 
-if [[ "${__operation}" == "disable-services" ]]; then
+if [[ "${__operation}" == "svc-disable" ]]; then
   doServiceOperation disable
 fi
 
-if [[ "${__operation}" == "status-services" ]]; then
+if [[ "${__operation}" == "svc-status" ]]; then
   doServiceOperation status
 fi
 
