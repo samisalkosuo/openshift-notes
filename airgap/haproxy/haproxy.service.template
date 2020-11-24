@@ -1,0 +1,15 @@
+[Unit]
+Description=%SERVICE_NAME% Podman Container
+
+[Service]
+Restart=on-failure
+ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
+ExecStartPre=-/usr/bin/podman rm -f %SERVICE_NAME%
+ExecStart=/usr/bin/podman run --conmon-pidfile  /%t/%n-pid  --cidfile /%t/%n-cid --publish 0.0.0.0:443:443 --publish 0.0.0.0:80:80 --publish 0.0.0.0:6443:6443 --publish 0.0.0.0:22623:22623 --name %SERVICE_NAME% -d %SERVICE_NAME%
+ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+KillMode=none
+Type=forking
+PIDFile=/%t/%n-pid
+
+[Install]
+WantedBy=multi-user.target

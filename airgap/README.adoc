@@ -1,0 +1,103 @@
+= OpenShift airgapped installation
+:toc: left
+:toc-title: Table of Contents
+
+This document describes how to install OpenShift 4.6 on airgapped environment. A few scripts are provided in this repository to make the installation relatively easy.
+
+== Architecture
+
+TODO: image and description of the architecture
+
+=== Servers
+
+The following servers are required:
+
+* All servers should use the same Linux distribution and version.
+** Red Hat Enterprise Linux 8.2 is used in this document.
+* Jump server:
+** access to Internet.
+** used to mirror images, download software, etc.
+** may or may not have access to bastion server.
+* Bastion server:
+** this server is in the network with no access to Internet.
+** has access to OpenShift network.
+** includes supporting services like mirror registry, other registries, DHCP, DNS, etc.
+* Load balancer server:
+** HAProxy as access point to OpenShift.
+** public IP address and access to OpenShift network.
+
+In addition to RHEL, Red Hat CoreOS is used in all OpenShift nodes. CoreOS servers are installed during installation process using PXE, https://en.wikipedia.org/wiki/Preboot_Execution_Environment[Preboot eXecution Environment].
+
+Be aware that access to the environment is required. For example, if using virtualization like VMWare, we need to have sufficient access rights to create create empty virtual machines for OpenShift. 
+
+=== Network
+
+Network is in place as shown in the architecture. Setting up the network is out of scope of this document. Note that network information is required for installation. 
+
+== Installation overview
+
+High level steps of the installation:
+
+* Download prereq software and mirror OpenShift images to mirror registry.
+* Transfer mirror registry and other software to bastion-server.
+* Configure HAProxy, DNS, DHCP, PXE and other supporting services.
+* Install OpenShift.
+
+After OpenShift is installed, there are a few configuration items:
+
+* Add image registry storage.
+* Add valid certificate.
+* Update cluster when new version is available.
+
+== Prerequisites
+
+Before preparing for installation in jump server, make note of the prereqs:
+
+* This repository must be present in jump server.
+* Domain name for OpenShift:
+** For example: `forum.fi.ibm.com`
+* Cluster name for OpenShift:
+** For example: `ocp-07`
+* See link:config.sh[config.sh].
+
+Later, before starting to install OpenShift, prereqs include:
+
+* OpenShift node IP addresses, network, MAC addresses and other configuration information.
+* See link:config.sh[config.sh].
+
+== Prepare servers
+
+Prepare three servers for jump server, bastion and load balancer.
+
+All three servers should be the same Linux distribution and version. These instructions are written for Red Hat Enterprise Linux 8.2.
+
+* Jump server has Internet access.
+** It may have access to internal network.
+** Has access to yum-repositories (in case of RHEL, Red Hat subscription is enabled).
+* Bastion server has only internal network access.
+* Load balancer  has access to internal network access and also to public/internal network that is accessible by users.
+
+Installation of these servers is out of scope. This document assumes that the three servers are fresh installs.
+
+// GitHub does not support include, so must create ifdefs
+// Add headers and links to other docs
+ifdef::env-github[]
+== Jump server
+
+link:jumpserver.adoc[Start installation by preparing jump server].
+
+== Bastion server
+
+link:bastionserver.adoc[Install OpenShift in bastion server].
+
+endif::env-github[]
+
+// when not in GitHub
+// include other docs
+ifndef::env-github[]
+
+include::jumpserver.adoc[]
+include::bastionserver.adoc[]
+
+endif::env-github[]
+

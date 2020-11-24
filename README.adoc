@@ -1,0 +1,5 @@
+# OpenShift Notes and Commentary
+
+This repository includes OpenShift related notes, scripts and so on.
+
+* link:airgap/[airgap]-directory includes instructions and scripts to install OpenShift in airgapped environment.

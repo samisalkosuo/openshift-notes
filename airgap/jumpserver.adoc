@@ -1,0 +1,311 @@
+// When in GitHub add TOC
+ifdef::env-github[]
+= Jump server
+:toc: left
+:toc-title: Table of Contents
+endif::env-github[]
+
+// When not in GitHub add just the header
+ifndef::env-github[]
+== Jump server
+endif::env-github[]
+
+
+Jump server is the one with internet access and this is used to mirror OpenShift images and download required packages. It may or may not have access to internal network. If it does have access to internal network then required packages can be copied easily to bastion server. If it does not have access to bastion, packages need to be copied by any means necessary.
+
+=== RHEL subscription
+
+If using RHEL, use following commands to enabled subscription. If using other distribution, enable required repositories.
+
+* Register to RedHat:
+** `subscription-manager register --username <username> --password <password> --auto-attach`
+* Enable extras and EPEL repos:
+** `subscription-manager repos --enable=rhel-8-server-extras-rpms`
+
+=== Pull secret
+
+Pull secret is required to download images from Red Hat.
+
+* Get pull secret from Red Hat:
+** Go to https://cloud.redhat.com/openshift/install
+** Login using your Red Hat credentials.
+** Select _Clusters_ -> _Run on bare metal_ -> _User-provisioned infrastructure_.
+** Copy/download pull secret and put it in file:
+*** `pull-secret.json`
+*** copy pull-secret.json to the same directory as script _omg.sh_.
+
+=== Environment variables
+
+* link:config.sh[config.sh] includes environment variables for scripts. 
+* View the file and modify variables as required.
+* If you already know domain, network, hostname, MAC addresses and other configuration of your OpenShift environment then you can add them now.
+* If you do not know, then leave values as they are and modify them later in the bastion server.
+* Source variables using command:
+** `source config.sh`
+
+=== omg.sh
+
+Script link:omg.sh[omg.sh] is used to install prereqs, create services, prepare bastion server for OpenShift install and does other things as well. 
+
+Review the script to see what is done.
+
+=== All at once
+
+If you dare, do all steps at once in jump server:
+
+```
+sh omg.sh prereq-install               && \
+sh omg.sh create-ca-cert               && \
+sh omg.sh create-registry-cert         && \
+sh omg.sh create-mirror-image-registry && \
+sh omg.sh do-mirroring                 && \
+sh omg.sh create-ntp-server            && \
+sh omg.sh create-apache-rhcos-server   && \
+sh omg.sh create-dns-server            && \
+sh omg.sh create-dhcp-pxe-server       && \
+sh omg.sh create-haproxy-server        && \
+sh omg.sh get-kubeterminal             && \
+sh omg.sh create-dist-packages
+```
+
+Or do steps one at a time by following the following sections.
+
+=== Install prereq packages
+
+Several packages are required, or useful, to prepare for OpenShift install.
+
+* Install packages:
+** `sh omg.sh prereq-install`
+* View _omg.sh_ to see what packages are installed.
+* Alpine base image is also created during prereq install. The base image is used by containers such as Apache container.
+
+=== tmux
+
+Prereqs install a terminal multiplexer, _tmux_. Useful to create sessions that run even after client disconnects. 
+
+Basic commands:
+
+* Start new session:
+** `tmux new-session`
+** `tmux new-session -s ocp`, creates session with name 'ocp'
+* Detach from session:
+** `tmux detach-client`
+* Attach to existing session:
+** `tmux attach-session`
+** `tmux attach-session -t ocp`, attach to named session
+* For a quick guide to tmux check https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/[A Quick and Easy Guide to tmux]
+
+=== Certificates
+
+Certificates are required for mirror registry and optionally other services/servers as well. Here we create our own self-signed CA and certificates for OpenShift image registries, including mirror registry.
+
+
+==== CA certificate
+
+* Generate CA certificate for your domain:
+** `sh omg.sh create-ca-cert`
+** Command uses script link:certificates/create_ca_cert.sh[create_ca_cert.sh] to generate CA certificate for the OpenShift domain.
+** View and modify the script as required.
+* CA cert files are generated, for example:
+**  _CA_forum.fi.ibm.com.key_
+** _CA_forum.fi.ibm.com.crt_
+* View certificate using command:
+** `openssl x509 -in <cert-file> -text -noout`
+* The script adds CA certificate as trusted.
+** Verify that CA cert is found in trusted CA list:
+** `awk -v cmd='openssl x509 -noout -subject' '/BEGIN/{close(cmd)};{print | cmd}' < /etc/ssl/certs/ca-bundle.crt`
+* CA certificate is added OpenShift install config.
+
+==== Registry certificate
+
+* Generate registry certificate for your domain:
+** `sh omg.sh create-registry-cert`
+** Command uses link:certificates/create_registry_certificate.sh[create_registry_certificate.sh] to create registry certificate.
+* The registry certificate is generated for following names:
+** _registry_, _registry_.<DOMAIN>_
+** _mirror-registry_, _mirror-registry_.<DOMAIN>_
+** _ocp-registry_, _ocp-registry_.<DOMAIN>_
+** _external-registry_, _external-registry_.<DOMAIN>_
+* The same certificate is used in all OpenShift registries:
+** _mirror-registry_, mirror registry includes only OpenShift containers downloaded from Internet.
+** _ocp-registry_ and _external-registry_, external registries for OpenShift. Use both or one of these to add third party containers such as IBM Cloud Paks.
+* Registry certificate and key files are:
+** _domain.crt_
+** _domain.key_
+** These are used as registry certificates.
+
+=== Mirror registry
+
+Image registry is a container and it is used via systemctl.
+
+* Generate and configure mirror registry systemd service using:
+** `sh omg.sh create-mirror-image-registry`
+** Command uses script link:registry/create_registry.sh[create_registry.sh] and pulls registry container, creates files required for registry and also creates systemd service file.
+** Script starts service and adds localhost as mirror-registry host to _/etc/hosts_.
+* Use `systemctl start|status|stop|enable <svc name>` to control service.
+** Service name is configured in link:config.sh[config.sh].
+* Test service using curl, for example:
+** `curl -u admin:passw0rd https://mirror-registry.forum.fi.ibm.com:5000/v2/_catalog`
+** You should get response: `{"repositories":[]}`
+
+=== Mirroring
+
+Mirroring process downloads OpenShift images from Red Hat and uploads them to mirror registry. This process requires authentication for both Red Hat registries and local mirror registry.
+
+Mirroring process includes also preparation to install OpenShift in airgapped bastion.
+
+* Do mirroring using command:
+** `sh omg.sh do-mirroring`
+** Mirroring takes a while...
+* _mirroring_-directory includes scripts for mirroring process.
+** oc-client is downloaded using link:mirroring/download_client.sh[download_client.sh].
+** Pull secrets are created using link:mirroring/create_pull_secrets.sh[create_pull_secrets.sh].
+** Files _pull-secret-bundle.json_ and _pull-secret-mirror-registry.json_ are created.
+** Mirroring is done using link:mirroring/mirror.sh[mirror.sh_]
+*  _openshift-install_ is downloaded from mirror registry and _install_config.yaml_ is created using link:mirroring/create_install_files.sh[create_install_files.sh].
+
+Before copying mirror registry and other files to bastion, we need to get other prereq software for disconnected install. They are covered in the next sections.
+
+=== Firewall
+
+NTP, DNS and other services use ports that are closed by default.
+
+* To open required ports:
+** `sh omg.sh firewall-open`
+* To close required ports:
+** `sh omg.sh firewall-close`
+
+=== NTP server (optional)
+
+NTP server is mandatory but you may already have NTP server available. 
+If you don't have NTP server, don't know the address or don't want to use it, NTP server can be created as a container.
+
+* Create NTP server image:
+** `sh omg.sh create-ntp-server`
+** NTP server files are in _ntp-server_-directory
+* NTP server uses local server as time source.
+
+Test NTP:
+
+* Start NTP server:
+** `systemctl start ocp-ntp-server`
+* Login to another server.
+* Verify that chronyd service is active (if not, then start it):
+** `systemctl status chronyd`
+* Add NTP server to configuration:
+** Open _/etc/chrony.conf_
+** Add following line in the beginning of the file:
+** `server 192.168.47.99 iburst prefer`
+** IP address your NTP server IP address.
+* Restart:
+** `systemctl restart chronyd`
+* To test that client is connected to server use command:
+** `chronyc -n sources`
+** Output is similar to:
+```
+  MS Name/IP address         Stratum Poll Reach LastRx Last sample
+  ===============================================================================
+  ^* 192.168.47.99                10   7    27   128    -50us[  -52us] +/-  203us
+```
+** Where LastRx-column shows when a time-sample was last received from the server.
+
+
+=== Apache
+
+Apache server includes RHCOS binaries and ignition files for OpenShift install. RHCOS binaries are downloaded from Red Hat and included in Apache image.
+
+Another Apache server for ignition files is created in bastion server later during the installation process.
+
+Two different Apache server containers for RHCOS and ignitions files is used because they have different lifecycles and it will be easy to update RHCOS binaries by just creating a new Apache container for RHCOS binaries.
+
+
+==== Apache for RHCOS binaries
+
+* Create Apache for RHCOS using:
+** `sh omg.sh create-apache-rhcos-server`
+** Apache image is created using  link:boot_services/create_apache_image.sh[create_apache_image.sh].
+* After executing script, you may test the serverusing:
+** `systemctl status ocp-apache-rhcos`
+** `systemctl start apache-rhcos`
+** Open browser to http://<server>:8080/ to verify that images are available.
+** http://<server:8080/files.txt includes file name list.
+** `systemctl stop ocp-apache`
+
+==== Apache for ignition files
+
+Will be create later in bastion server.
+
+=== DNS
+
+Internal DNS for OpenShift installation is generated from link:config.sh[config.sh].
+
+* Create DNS server image using:
+** `sh omg.sh create-dns-server`
+** Script link:boot_services/create_dns_image.sh[create_dns_image.sh] creates DNS image.
+* Start the service:
+** `systemctl start ocp-dns`
+* Control DNS server using systemctl:
+** `systemctl <operation> ocp-dns`
+* Test DNS using for example:
+** `nslookup registry 192.168.47.100`
+** where IP is the DNS server IP.
+
+=== DHCP/PXE
+
+DHCP and PXE environment,that includes DHCP and TFTP server, are generated from link:config.sh[config.sh]. 
+
+* Create DNS server image using:
+** `sh omg.sh create-dhcp-pxe-server`
+** Script link:boot_services/create_dhcp_pxe_image.sh[create_dhcp_pxe_image.sh] creates DHCP/TFTP server for PXE booting.
+* Control DHCP/PXE server using systemctl:
+** `systemctl <operation> ocp-dns`
+** `systemctl <operation> ocp-dhcp-pxe`
+* Test DHCP server using nmap:
+** `nmap --script broadcast-dhcp-discover`
+** Or test DHCP/PXE by booting a machine in the network. It should get IP from DHCP and should start installing RHCOS.
+
+
+=== HAProxy
+
+HAProxy is used as load balancer in airgapped OpenShift installation. Only one HAProxy is used in this installation.
+
+* Create DNS server image using:
+** `sh omg.sh create-haproxy-server`
+** Script link:haproxy/create_haproxy_server.sh[create_haproxy_server.sh] creates haproxy container and systemd service.
+** Bootstrap server is also added to haproxy.
+** To create haproxy container without bootstrap server, use:
+** `sh create_haproxy_container.sh nobootstrap`
+** This is used later during the installation process.
+
+=== KubeTerminal
+
+https://github.com/samisalkosuo/kubeterminal[KubeTerminal] is a useful tool that complements _oc_ and _kubectl_ clients.
+
+Download KubeTerminal binary using:
+
+* `sh omg.sh get-kubeterminal`
+
+=== Other
+
+TODO: add NFS client provisioner and other useful stuff
+
+=== Package for distribution
+
+* Create distribution files that can be moved to bastion:
+** `sh omg.sh create-dist-packages`
+* When packaging is finished, copy/move following files to bastion server:
+** _dist.tar_
+** _mirror-registry.tar_
+
+ifdef::env-github[]
+link:bastionserver.adoc[Continue installation on the bastion server].
+endif::env-github[]
+
+ifndef::env-github[]
+Continue installation on the bastion server.
+endif::env-github[]
+
+
+
+
+

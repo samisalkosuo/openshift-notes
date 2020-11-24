@@ -1,0 +1,16 @@
+[Unit]
+Description=%SERVICE_NAME% Podman Container
+
+[Service]
+Restart=on-failure
+ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
+ExecStartPre=-/usr/bin/podman rm -f %SERVICE_NAME%
+ExecStart=/usr/bin/podman run --conmon-pidfile  /%t/%n-pid  --cidfile /%t/%n-cid --name %SERVICE_NAME% -p %REGISTRY_PORT%:5000 -v %REGISTRY_DIR%/data:/var/lib/registry:z -v %REGISTRY_DIR%/auth:/auth:z -e REGISTRY_STORAGE_DELETE_ENABLED=true -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v %REGISTRY_DIR%/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key -d docker.io/library/registry:2
+ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+KillMode=none
+Type=forking
+PIDFile=/%t/%n-pid
+
+[Install]
+WantedBy=multi-user.target
+

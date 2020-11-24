@@ -1,0 +1,12 @@
+subnet %OCP_DHCP_NETWORK%  netmask %OCP_DHCP_NETWORK_MASK% {
+    interface                  %OCP_DHCP_NETWORK_INTERFACE%;
+    option subnet-mask         %OCP_DHCP_NETWORK_MASK%;
+    option broadcast-address   %OCP_DHCP_NETWORK_BROADCAST_ADDRESS%;
+    option routers             %OCP_DHCP_NETWORK_ROUTER%;
+    option domain-name         "%OCP_DOMAIN%";
+    option ntp-servers         %OCP_DHCP_NTP_SERVER%;
+    option domain-name-servers %OCP_DHCP_DNS_SERVER%;
+    option time-offset         7200;
+    next-server                %TFTP_SERVER%;
+    filename                   "lpxelinux.0";
+}

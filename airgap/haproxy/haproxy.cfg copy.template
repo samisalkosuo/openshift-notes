@@ -1,0 +1,86 @@
+# Global settings
+#---------------------------------------------------------------------
+global
+    maxconn     20000
+    log         /dev/log local0 info
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          300s
+    timeout server          300s
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 20000
+
+listen stats
+    bind :9000
+    mode http
+    stats enable
+    stats uri /
+
+frontend  openshift-app-https
+    bind *:443
+    default_backend openshift-app-https
+    mode tcp
+    option tcplog
+
+
+frontend  openshift-app-http
+    bind *:80
+    default_backend openshift-app-http
+    mode tcp
+    option tcplog
+
+frontend  master-api
+    bind *:6443
+    default_backend master-api-be
+    mode tcp
+    option tcplog
+
+
+frontend  master-api-2
+    bind *:22623
+    default_backend master-api-2-be
+    mode tcp
+    option tcplog
+
+backend master-api-be
+    balance roundrobin
+    mode tcp
+    server      bootstrap 192.168.47.10:6443 check
+    server      master 192.168.47.11:6443 check
+    server      master 192.168.47.12:6443 check
+    server      master-03 192.168.47.13:6443 check
+
+backend master-api-2-be
+    balance roundrobin
+    mode tcp
+    server      bootstrap 192.168.47.10:22623 check
+    server      master-01 192.168.47.11:22623 check
+    server      master-02 192.168.47.12:22623 check
+    server      master-03 192.168.47.13:22623 check
+
+backend openshift-app-https
+    balance source
+    mode tcp
+    server      worker-01 192.168.47.14:443 check
+    server      worker-02 192.168.47.15:443 check
+
+backend openshift-app-http
+    balance source
+    mode tcp
+    server      worker-01 192.168.47.14:80 check
+    server      worker-02 192.168.47.15:80 check
+

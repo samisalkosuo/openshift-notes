@@ -1,0 +1,195 @@
+// When in GitHub add TOC
+ifdef::env-github[]
+= Bastion server
+:toc: left
+:toc-title: Table of Contents
+endif::env-github[]
+
+// When not in GitHub add just the header
+ifndef::env-github[]
+== Bastion server
+endif::env-github[]
+
+The bastion server is the server where OpenShift installation is done. 
+
+Bastion does not have internet access and all files need to be copied from jump server to here.
+
+=== Copy files
+
+Copy distribution files _dist.tar_ and _mirror-registry.tar_ to bastion-server.
+
+=== Prepare bastion
+
+* Login to bastion as root.
+* Extract _dist.tar_:
+** `tar -xf dist.tar`
+* Open link:config.sh[config.sh] 
+** Set `OCP_OMG_SERVER_ROLE=bastion`
+** Then `source config.sh`.
+* Prepare bastion server:
+** `sh omg.sh prepare-bastion`
+* prepare-bastion does the following:
+** loads images, copies files, extracts scripts and mirror registry files.
+** creates _install_-directory that includes _install-config.yaml_.
+** create ocp-user for installation and modifies _install-config.yaml_.
+** creates manifest and ignition files.
+** creates,starts and tests (using curl) Apache server for ignition files.
+
+
+=== Prepare services
+
+Prepare services for installation: NTP, DNS and PXE environment.
+
+* Login to bastion server as root.
+* Modify, if needed, link:config.sh[config.sh]:
+** Configure IP addresses, hostname, MACs etc.
+** Make note of network interface for DHCP. Verify that _OCP_DHCP_NETWORK_INTERFACE_ is correct.
+* After you have correct configuration in _config.sh_, create services:
+** `sh omg.sh create-dns-server`
+** `sh omg.sh create-dhcp-pxe-server`
+* NTP and Apache servers were created in jump-server are good to go already.
+* Open firewall ports:
+** `sh omg.sh firewall-open`
+* Start services:
+** `sh omg.sh start-services`
+
+=== HAProxy
+
+You may use bastion also as HAProxy load balancer in which case you can start HAProxy service. However, here we use a dedicated server for HAPoxy load balancer. 
+
+Assumption is that HAProxy server is already installed and it has access to the same network as bastion (which is OpenShift internal network).
+
+* Copy _dist.tar_ (from bastion or from jump server) to haproxy server.
+* Login to haproxy server.
+* Extract _dist.tar_:
+** `tar -xf dist.tar`
+* Open link:config.sh[config.sh] 
+** Set `OCP_OMG_SERVER_ROLE=haproxy`
+** Then `source config.sh`.
+* Prepare haproxy server:
+** `sh omg.sh prepare-haproxy`
+** HAProxy image is loaded and service file copied to _/etc/systemd/system/_-
+* Use _systemctl_ to control service:
+** `systemctl start|stop|status|restart|enable ocp-haproxy`
+* Open firewall ports for HTTP, HTTPS and OpenShift API:
+** `sh omg.sh firewall-open-haproxy`
+* If you need to change HAProxy configuration:
+** Modify link:config.sh[config.sh].
+** Create new haproxy container image:
+*** `sh omg.sh create-haproxy-server`
+** Restart service: `systemctl restart ocp-haproxy`
+
+Services required by OpenShift are ready and we can start OpenShift installation.
+
+=== Install OpenShift
+
+* Login as user _ocp_ in bastion.
+** For example, as root: `su - ocp`
+** Use _ocp_-user  to install and manage OpenShift.
+* Start bootstrap-machine.
+** It should get IP address from DHCP and RHCOS and ignition files from Apache servers.
+** Monitor installation using bootstrap-console and when console shows the login prompt:
+** As _ocp_-user login from bastion to bootstrap:
+** `ssh core@bootstrap`
+** You should be able to login.
+** Verify that mirror registry is accessible, for example:
+** `curl -u admin:passw0rd https://mirror-registry.forum.fi.ibm.com:5000/v2/ocp/openshift4/tags/list`
+* Start each master node and verify that you can access them.
+* As _ocp_-user go to _~/install_-directory:
+** Execute:
+** `openshift-install --dir=./ wait-for bootstrap-complete --log-level debug`
+** You can view installation in another terminal by logging in to one of the master-nodes and viewing journal: `journalctl -f`. It should not show any recurring errors.
+** After a while you should see output like:
+```
+    DEBUG OpenShift Installer 4.6.1
+    DEBUG Built from commit ebdbda57fc18d3b73e69f0f2cc499ddfca7e6593
+    INFO Waiting up to 20m0s for the Kubernetes API at https://api.ocp-07.forum.fi.ibm.com:6443...
+    INFO API v1.19.0+d59ce34 up
+    INFO Waiting up to 30m0s for bootstrapping to complete...
+    DEBUG Bootstrap status: complete
+    INFO It is now safe to remove the bootstrap resources
+    DEBUG Time elapsed per stage:
+    DEBUG Bootstrap Complete: 25m10s
+    INFO Time elapsed: 25m10s
+```
+** Note the last lines, it should indicate success.
+* As instructed, remove bootstrap-node:
+** Login to haproxy and create new haproxy without bootstrap:
+** `systemctl stop ocp-haproxy`
+** `source config.sh`
+** `sh omg.sh create-haproxy-server-wob`
+** `systemctl start ocp-haproxy`
+
+OpenShift can now be accessed. However, it will not be ready until all cluster operators are ready.
+
+* As _ocp_-user, export kubeadmin-credentials:
+** `export KUBECONFIG=/home/ocp/install/auth/kubeconfig`
+* Verify that you can access OpenShift:
+** `oc whoami`
+** `oc get nodes`
+* Add at least one worker node to complete installation.
+** Make sure that worker node information is in _config.sh_ and that DNS and DHCP services include that information.
+** Start the node, it should get IP address from DHCP and register itself as worker.
+* When adding worker nodes, certificate requests need to be approved before node becomes part of the cluster:
+** Two CSRs per worker node must be approved.
+** See certificate requests:
+** `oc get csr`
+** If any request in in 'Pending'-state, approve them:
+** `oc adm certificate approve <csr name>`
+* View node status using command:
+** `oc get nodes`
+* When worker node is ready, it takes a few moments to get everything ready.
+** Use: `oc get clusteroperators` to get status of cluster operators.
+** All must be available. Example output:
+```
+    NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
+    authentication                             4.6.1     True        False         False      32m
+    cloud-credential                           4.6.1     True        False         False      157m
+    cluster-autoscaler                         4.6.1     True        False         False      139m
+    config-operator                            4.6.1     True        False         False      141m
+    console                                    4.6.1     True        False         False      36m
+    csi-snapshot-controller                    4.6.1     True        False         False      141m
+    dns                                        4.6.1     True        False         False      139m
+    etcd                                       4.6.1     True        False         False      111m
+    image-registry                             4.6.1     True        False         False      107m
+    ingress                                    4.6.1     True        False         False      39m
+    insights                                   4.6.1     True        False         False      141m
+    kube-apiserver                             4.6.1     True        False         False      110m
+    kube-controller-manager                    4.6.1     True        False         False      138m
+    kube-scheduler                             4.6.1     True        False         False      137m
+    kube-storage-version-migrator              4.6.1     True        False         False      39m
+    machine-api                                4.6.1     True        False         False      140m
+    machine-approver                           4.6.1     True        False         False      140m
+    machine-config                             4.6.1     True        False         False      139m
+    marketplace                                4.6.1     True        False         False      139m
+    monitoring                                 4.6.1     True        False         False      38m
+    network                                    4.6.1     True        False         False      142m
+    node-tuning                                4.6.1     True        False         False      141m
+    openshift-apiserver                        4.6.1     True        False         False      107m
+    openshift-controller-manager               4.6.1     True        False         False      138m
+    openshift-samples                          4.6.1     True        False         False      103m
+    operator-lifecycle-manager                 4.6.1     True        False         False      140m
+    operator-lifecycle-manager-catalog         4.6.1     True        False         False      140m
+    operator-lifecycle-manager-packageserver   4.6.1     True        False         False      108m
+    service-ca                                 4.6.1     True        False         False      141m
+    storage                                    4.6.1     True        False         False      141m
+```
+
+We can complete the installation.
+
+* As _ocp_-user, go to _install_-directory and execute:
+** `openshift-install --dir=./ wait-for install-complete`
+* Output is similar to:
+```
+  INFO Waiting up to 40m0s for the cluster at https://api.ocp-07.forum.fi.ibm.com:6443 to initialize...
+  INFO Waiting up to 10m0s for the openshift-console route to be created...
+  INFO Install complete!
+  INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/ocp/install/auth/kubeconfig'
+  INFO Access the OpenShift web-console here: https://console-openshift-console.apps.ocp-07.forum.fi.ibm.com
+  INFO Login to the console with user: "kubeadmin", and password: "abcde-fghij-klnmo-pqrst"
+  INFO Time elapsed: 1s
+```
+* Note the web-console URL and _kubeadmin_ password.
+
+OpenShift is now installed.
+
