@@ -2,15 +2,6 @@
 
 set -e
 
-#set config environment variables here
-#if set outside then OCP_NODE_HOSTS is missing in this script even if it is exported???????????
-
-if [ -f ../config.sh ]; then
-    source ../config.sh
-else 
-    source config.sh
-fi
-
 function usage
 {
   echo "$1 env variable missing."

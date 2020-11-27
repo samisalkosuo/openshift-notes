@@ -79,12 +79,12 @@ Before preparing for installation in jump server, make note of the prereqs:
 ** For example: `forum.fi.ibm.com`
 * Cluster name for OpenShift:
 ** For example: `ocp-07`
-* See link:config.sh[config.sh].
+* See link:config.sh[../config.sh].
 
 Later, before starting to install OpenShift, prereqs include:
 
 * OpenShift node IP addresses, network, MAC addresses and other configuration information.
-* See link:config.sh[config.sh].
+* See link:config.sh[../config.sh].
 
 == Prepare servers
 

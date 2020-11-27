@@ -1,0 +1,12 @@
+[Unit]
+Description=%SERVICE_NAME% Podman Container
+
+[Service]
+ExecStartPre=-/usr/bin/podman rm -i -f %SERVICE_NAME%
+ExecStart=/usr/bin/podman run --rm --publish 0.0.0.0:443:443 --publish 0.0.0.0:80:80 --publish 0.0.0.0:6443:6443 --publish 0.0.0.0:22623:22623 --name %SERVICE_NAME%  %SERVICE_NAME%
+Restart=always
+KillMode=control-group
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

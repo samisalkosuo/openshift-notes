@@ -1,11 +1,5 @@
 #!/bin/bash
 
-if [ -f ../config.sh ]; then
-    source ../config.sh
-else 
-    source config.sh
-fi
-
 function usage
 {
   echo "$1 env variable missing."

@@ -64,6 +64,7 @@ if [[ "$1" == "" ]]; then
 fi
 
 __operation=$1
+__script_dir=install
 
 function check_role
 {
@@ -100,7 +101,7 @@ fi
 
 if [[ "${__operation}" == "create-haproxy-server-wob" ]]; then
   echo "creating HAProxy server image without bootstrap..."
-  cd haproxy
+  cd ${__script_dir}/haproxy
   sh create_haproxy_server.sh nobootstrap
   echo "creating HAProxy server image without bootstrap...done."
 
@@ -108,7 +109,7 @@ fi
 
 if [[ "${__operation}" == "create-haproxy-server" ]]; then
   echo "creating HAProxy server image..."
-  cd haproxy
+  cd ${__script_dir}/haproxy
   sh create_haproxy_server.sh
   echo "creating HAProxy server image...done."
 fi
@@ -116,21 +117,21 @@ fi
 
 if [[ "${__operation}" == "create-dhcp-pxe-server" ]]; then
   echo "creating DHCP/PXE server images..."
-  cd boot-services
+  cd ${__script_dir}/boot-services
   sh create_dhcp_pxe_image.sh
   echo "creating DHCP/PXE server images...done."
 fi
 
 if [[ "${__operation}" == "create-dns-server" ]]; then
   echo "creating DNS server images..."
-  cd boot-services
+  cd ${__script_dir}/boot-services
   sh create_dns_image.sh
   echo "creating DNS server images...done."
 fi
 
 if [[ "${__operation}" == "create-apache-rhcos-server" ]]; then
   echo "creating Apache for RHCOS images..."
-  cd boot-services
+  cd ${__script_dir}/boot-services
   sh create_apache_image.sh
   echo "creating Apache for RHCOS images...done."
 fi
@@ -186,7 +187,7 @@ fi
 
 if [[ "${__operation}" == "create-ntp-server" ]]; then
   echo "creating NTP server image..."
-  cd ntp-server
+  cd ${__script_dir}/ntp-server
   sh create_ntp_server_image.sh
   echo "creating NTP server image...done."
 fi
@@ -199,8 +200,8 @@ if [[ "${__operation}" == "do-mirroring" ]]; then
       echo "get it from Red Hat and copy it to this directory."
       exit 2
   fi
-  cp pull-secret.json mirroring
-  cd mirroring
+  cp pull-secret.json ${__script_dir}/mirroring
+  cd ${__script_dir}/mirroring
   echo "downloading oc-client.."
   sh download_client.sh
   echo "creating pull secrets..."
@@ -215,7 +216,7 @@ fi
 
 if [[ "${__operation}" == "create-mirror-image-registry" ]]; then
   echo "creating mirror image registry..."
-  cd registry
+  cd ${__script_dir}/registry
   echo "pulling registry image..."
   podman pull docker.io/library/registry:2  
   sh create_registry.sh ../certificates/domain.crt ../certificates/domain.key
@@ -224,14 +225,14 @@ fi
 
 if [[ "${__operation}" == "create-registry-cert" ]]; then
   echo "creating registry cert..."
-  cd certificates
+  cd ${__script_dir}/certificates
   sh create_registry_cert.sh
   echo "creating registry cert...done."
 fi
 
 if [[ "${__operation}" == "create-ca-cert" ]]; then
   echo "creating CA cert..."
-  cd certificates
+  cd ${__script_dir}/certificates
   sh create_ca_cert.sh
   echo "creating CA cert...done."
 fi
@@ -249,7 +250,7 @@ function prereq_install
 
   if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]]; then
     echo "creating alpine-base image..."
-    podman build -t alpine-base ./alpine-base
+    podman build -t alpine-base ./install/alpine-base
     echo "alpine-base image created"
   fi
   echo "prereq-install done."
@@ -354,12 +355,12 @@ EOF
   tar -xf dist/scripts.tgz -C .
   echo "adding CA cert as trusted..."
   __ca_file_name=CA_${OCP_DOMAIN}
-  cp certificates/${__ca_file_name}.crt /etc/pki/ca-trust/source/anchors/
+  cp ${__script_dir}/certificates/${__ca_file_name}.crt /etc/pki/ca-trust/source/anchors/
   update-ca-trust extract
   echo "loading container images..."
   ls -1 dist/img_* |awk '{print "podman load -i " $1}' |sh
   echo "copying binaries to /usr/local/bin..."
-  cp dist/kubectl dist/kubeterminal.bin dist/oc mirroring/openshift-install /usr/local/bin/
+  cp dist/kubectl dist/kubeterminal.bin dist/oc ${__script_dir}/mirroring/openshift-install /usr/local/bin/
   echo "copying systemctl services to /etc/systemd/system/..."
   cp dist/*.service /etc/systemd/system/
   echo "extracting mirror registry..."
@@ -368,7 +369,7 @@ EOF
   useradd ${OCP_INSTALL_USER}
   echo "copying install-files to ocp-users install-directory..."
   mkdir -p /home/${OCP_INSTALL_USER}/install
-  cp mirroring/install-config.yaml mirroring/mirror-output.txt mirroring/*json /home/${OCP_INSTALL_USER}/install/
+  cp ${__script_dir}/mirroring/install-config.yaml ${__script_dir}/mirroring/mirror-output.txt ${__script_dir}/mirroring/*json /home/${OCP_INSTALL_USER}/install/
   chown -R ${OCP_INSTALL_USER}:${OCP_INSTALL_USER} /home/${OCP_INSTALL_USER}/install
   echo "creating ${OCP_INSTALL_USER}-user ssh key..."
   su - ${OCP_INSTALL_USER} -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa"
@@ -384,7 +385,7 @@ EOF
   echo "creating ignition files..."
   su - ${OCP_INSTALL_USER} -c "cd install && openshift-install create ignition-configs --dir=./"
   echo "creating Apache server for ignition files..."
-  __ign_dir=boot-services/ignition/
+  __ign_dir=${__script_dir}/boot-services/ignition/
   cp /home/${OCP_INSTALL_USER}/install/*ign ${__ign_dir}
   chmod 644 ${__ign_dir}/*ign
   podman build -t ${OCP_SERVICE_NAME_APACHE_IGNITION} ${__ign_dir}
@@ -423,7 +424,7 @@ EOF
   ls -l dist/img_* | awk -v MAX=35870976 '/^-/ && $5 <= MAX { print $NF }' |awk '{print "podman load -i " $1}' |sh
   #ls -1 dist/img_* |awk '{print "podman load -i " $1}' |sh
   echo "extracting scripts..."
-  tar -xf dist/scripts.tgz haproxy
+  tar -xf dist/scripts.tgz ${__script_dir}/haproxy
   echo "copying systemctl services to /etc/systemd/system/..."
   cp dist/${OCP_SERVICE_NAME_HAPROXY_SERVER}.service /etc/systemd/system/
   echo "start/stop haproxy:"
@@ -478,11 +479,11 @@ if [[ "${__operation}" == "create-dist-packages" ]]; then
   podman rm -fv kubeterminal
   podman rmi kazhar/kubeterminal
 
-  echo "packaging scripts..."
-  tar -czf ${__dist_dir}/scripts.tgz boot-services/ certificates/ haproxy/ ntp-server/ mirroring/ registry/
+  echo "packaging scripts..."  
+  tar -czf ${__dist_dir}/scripts.tgz ${__script_dir}/boot-services/ ${__script_dir}/certificates/ ${__script_dir}/haproxy/ ${__script_dir}/ntp-server/ ${__script_dir}/mirroring/ ${__script_dir}/registry/
   echo "creating tar..."
   tar -cf ${__dist_dir}.tar ${__dist_dir}/
-  tar -rf ${__dist_dir}.tar *sh *adoc
+  tar -rf ${__dist_dir}.tar *sh *adoc ${__script_dir}/*adoc
   echo "packaging mirror registry..."
   tar -cf mirror-registry.tar $OCP_MIRROR_REGISTRY_DIRECTORY
 

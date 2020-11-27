@@ -1,5 +1,4 @@
-#OpenShift airgap install
-#configuration for scripts, OCP, downloads and mirroring
+#Env variables for scripts, OCP, downloads,mirroring,etc.
 
 #OCP_OMG_SERVER_ROLE tells omg.sh script what is the role of the server
 #set OCP_OMG_SERVER_ROLE=jump when using server with access to internet

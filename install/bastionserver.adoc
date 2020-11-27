@@ -12,7 +12,7 @@ endif::env-github[]
 
 The bastion server is the server where OpenShift installation is done. 
 
-Bastion does not have internet access and all files need to be copied from jump server to here.
+Bastion does not have internet access and all files need to be copied from jump server.
 
 === Copy files
 
@@ -23,7 +23,7 @@ Copy distribution files _dist.tar_ and _mirror-registry.tar_ to bastion-server.
 * Login to bastion as root.
 * Extract _dist.tar_:
 ** `tar -xf dist.tar`
-* Open link:config.sh[config.sh] 
+* Open link:config.sh[../config.sh] 
 ** Set `OCP_OMG_SERVER_ROLE=bastion`
 ** Then `source config.sh`.
 * Prepare bastion server:
@@ -41,7 +41,7 @@ Copy distribution files _dist.tar_ and _mirror-registry.tar_ to bastion-server.
 Prepare services for installation: NTP, DNS and PXE environment.
 
 * Login to bastion server as root.
-* Modify, if needed, link:config.sh[config.sh]:
+* Modify, if needed, link:config.sh[../config.sh]:
 ** Configure IP addresses, hostname, MACs etc.
 ** Make note of network interface for DHCP. Verify that _OCP_DHCP_NETWORK_INTERFACE_ is correct.
 * After you have correct configuration in _config.sh_, create services:
@@ -69,7 +69,7 @@ Assumption is that HAProxy server is already installed and it has access to the 
 * Login to haproxy server.
 * Extract _dist.tar_:
 ** `tar -xf dist.tar`
-* Open link:config.sh[config.sh] 
+* Open link:config.sh[../config.sh] 
 ** Set `OCP_OMG_SERVER_ROLE=haproxy`
 ** Then `source config.sh`.
 * Prepare haproxy server:
@@ -80,7 +80,7 @@ Assumption is that HAProxy server is already installed and it has access to the 
 * Open firewall ports for HTTP, HTTPS and OpenShift API:
 ** `sh omg.sh firewall-open-haproxy`
 * If you need to change HAProxy configuration:
-** Modify link:config.sh[config.sh].
+** Modify link:config.sh[../config.sh].
 ** Create new haproxy container image:
 *** `sh omg.sh create-haproxy-server`
 ** Restart service: `systemctl restart ocp-haproxy`
@@ -104,6 +104,7 @@ Services required by OpenShift are ready and we can start OpenShift installation
 * As _ocp_-user go to _~/install_-directory:
 ** Execute:
 ** `openshift-install --dir=./ wait-for bootstrap-complete --log-level debug`
+** Wait for results..
 ** You can view installation in another terminal by logging in to one of the master-nodes and viewing journal: `journalctl -f`. It should not show any recurring errors.
 ** After a while you should see output like:
 ```

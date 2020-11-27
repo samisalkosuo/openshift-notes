@@ -36,7 +36,7 @@ Pull secret is required to download images from Red Hat.
 
 === Environment variables
 
-* link:config.sh[config.sh] includes environment variables for scripts. 
+* link:config.sh[../config.sh] includes environment variables for scripts. 
 * View the file and modify variables as required.
 * If you already know domain, network, hostname, MAC addresses and other configuration of your OpenShift environment then you can add them now.
 * If you do not know, then leave values as they are and modify them later in the bastion server.
@@ -45,7 +45,7 @@ Pull secret is required to download images from Red Hat.
 
 === omg.sh
 
-Script link:omg.sh[omg.sh] is used to install prereqs, create services, prepare bastion server for OpenShift install and does other things as well. 
+Script link:omg.sh[../omg.sh] is used to install prereqs, create services, prepare bastion server for OpenShift install and does other things as well. 
 
 Review the script to see what is done.
 
@@ -76,7 +76,7 @@ Several packages are required, or useful, to prepare for OpenShift install.
 
 * Install packages:
 ** `sh omg.sh prereq-install`
-* View _omg.sh_ to see what packages are installed.
+* View link:omg.sh[../omg.sh] to see what packages are installed.
 * Alpine base image is also created during prereq install. The base image is used by containers such as Apache container.
 
 === tmux
@@ -93,7 +93,7 @@ Basic commands:
 * Attach to existing session:
 ** `tmux attach-session`
 ** `tmux attach-session -t ocp`, attach to named session
-* For a quick guide to tmux check https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/[A Quick and Easy Guide to tmux]
+* For a quick guide to tmux, check https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/[A Quick and Easy Guide to tmux]
 
 === Certificates
 
@@ -143,7 +143,7 @@ Image registry is a container and it is used via systemctl.
 ** Command uses script link:registry/create_registry.sh[create_registry.sh] and pulls registry container, creates files required for registry and also creates systemd service file.
 ** Script starts service and adds localhost as mirror-registry host to _/etc/hosts_.
 * Use `systemctl start|status|stop|enable <svc name>` to control service.
-** Service name is configured in link:config.sh[config.sh].
+** Service name is configured in link:config.sh[../config.sh].
 * Test service using curl, for example:
 ** `curl -u admin:passw0rd https://mirror-registry.forum.fi.ibm.com:5000/v2/_catalog`
 ** You should get response: `{"repositories":[]}`
@@ -237,7 +237,7 @@ Will be create later in bastion server.
 
 === DNS
 
-Internal DNS for OpenShift installation is generated from link:config.sh[config.sh].
+Internal DNS for OpenShift installation is generated from link:config.sh[../config.sh].
 
 * Create DNS server image using:
 ** `sh omg.sh create-dns-server`
@@ -252,7 +252,7 @@ Internal DNS for OpenShift installation is generated from link:config.sh[config.
 
 === DHCP/PXE
 
-DHCP and PXE environment,that includes DHCP and TFTP server, are generated from link:config.sh[config.sh]. 
+DHCP and PXE environment,that includes DHCP and TFTP server, are generated from link:config.sh[../config.sh]. 
 
 * Create DNS server image using:
 ** `sh omg.sh create-dhcp-pxe-server`
