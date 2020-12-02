@@ -58,12 +58,21 @@ __local_secret_json=pull-secret-bundle.json
 __mirror_registry_secret_json=pull-secret-$OCP_MIRROR_REGISTRY_HOST_NAME.json
 __ca_cert_file=$1
 
-echo "Downloading openshft-install from mirror registry..."
-oc adm -a ${__local_secret_json} release extract --command=openshift-install "${__local_registry}/${OCP_LOCAL_REPOSITORY}:${OCP_RELEASE}"
+if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]]; then
+
+  echo "Downloading openshft-install from mirror registry..."
+  oc adm -a ${__local_secret_json} release extract --command=openshift-install "${__local_registry}/${OCP_LOCAL_REPOSITORY}:${OCP_RELEASE}"
+fi
 
 echo "Creating install-config.yaml..."
 __pull_secret_json=$(cat $__mirror_registry_secret_json | jq -c '')
-
+if [[ "$OCP_OMG_SERVER_ROLE" == "bastion_online" ]]; then
+  if [ ! -f "../../pull-secret.json" ]; then
+    echo "pull-secret.json does not exit."
+    exit 2
+  fi
+  __pull_secret_json=$(cat ../../pull-secret.json | jq -c '')
+fi
 #create install-config.yaml
 __install_cfg_file=install-config.yaml
 cp install-config.yaml.template $__install_cfg_file
@@ -79,8 +88,9 @@ sed -i s/%MIRROR_REGISTRY_PULL_SECRET%/${__pull_secret_json}/g $__install_cfg_fi
 echo "additionalTrustBundle: |" >> $__install_cfg_file
 cat ${__ca_cert_file} | sed 's/^/\ \ \ \ \ /g' >> $__install_cfg_file
 
-cat mirror-output.txt | grep -A7 imageContentSources >> $__install_cfg_file
-
+if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]]; then
+  cat mirror-output.txt | grep -A7 imageContentSources >> $__install_cfg_file
+fi
 #remove empty lines if there are any
 sed -i '/^[[:space:]]*$/d' $__install_cfg_file
 

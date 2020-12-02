@@ -1,8 +1,8 @@
-= OpenShift airgapped installation
+= OpenShift installation
 :toc: left
 :toc-title: Table of Contents
 
-This document describes how to install OpenShift 4.6 on airgapped environment. A few scripts are provided in this repository to make the installation relatively easy.
+This document describes how to install OpenShift 4.6 on airgapped or online environment. A few scripts are provided in this repository to make the installation relatively easy.
 
 == Architecture
 
@@ -11,7 +11,7 @@ image::architecture/OpenShift_architecture.svg[]
 
 The architecture of OpenShift in the context of this repository. Just a few comments about it:
 
-* Airgapped environment, but can be made online environment by adding a gateway from internal OCP network to network with external access.
+* Architecture shows an airgapped environment, but it can be made online environment by adding a gateway from internal OCP network to network with external access.
 * Jump server is the one used to download OpenShift images and other software.
 ** Files from jump server are transferred to bastion.
 * Bastion server is the one that is used to install/manage OpenShift environment.
@@ -27,11 +27,13 @@ The architecture of OpenShift in the context of this repository. Just a few comm
 * Most of the services (DHCP, DNS, NTP, Apache, etc.) are implemented as containers and executed using podman.
 ** This is because containers are easy to distribute and it is easy to dedicate and configure them specifically for OpenShift.
 
-The architecture and installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-network-user-infra_installing-restricted-networks-bare-metal[OpenShift installation in restricted network bare metal installation].
+Airgapped installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-network-user-infra_installing-restricted-networks-bare-metal[OpenShift installation in restricted network bare metal installation].
+
+Online installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-bare-metal.html#installation-obtaining-installer_installing-bare-metal[Installing a cluster on bare metal].
 
 === Servers
 
-The following servers are required:
+The following servers are needed to install OpenShift:
 
 * All servers should use the same Linux distribution and version.
 ** Red Hat Enterprise Linux 8.2 is used in this document.
@@ -39,32 +41,56 @@ The following servers are required:
 ** access to Internet.
 ** used to mirror images, download software, etc.
 ** may or may not have access to bastion server.
+** This is same as bastion in online-installation.
 * Bastion server:
 ** this server is in the network with no access to Internet.
 ** has access to OpenShift network.
 ** includes supporting services like mirror registry, other registries, DHCP, DNS, etc.
+** Separate bastion is not needed in online-installation.
 * Load balancer server:
 ** HAProxy as access point to OpenShift.
 ** public IP address and access to OpenShift network.
 
 In addition to RHEL, Red Hat CoreOS is used in all OpenShift nodes. CoreOS servers are installed during installation process using PXE, https://en.wikipedia.org/wiki/Preboot_Execution_Environment[Preboot eXecution Environment].
 
-Be aware that access to the environment is required. For example, if using virtualization like VMWare, we need to have sufficient access rights to create create empty virtual machines for OpenShift. 
+Be aware that access to the environment is required. For example, if using virtualization like VMWare, sufficient access rights is required to create empty virtual machines for OpenShift. 
 
 === Network
 
-Network is in place as shown in the architecture. Setting up the network is out of scope of this document. Note that network information is required for installation. 
+Network is in place as shown in the architecture. Setting up the network is out of scope of this document. Note that information about the network is required for OpenShift installation. 
+
+== Airgapped or online?
+
+These same instructions are used in both airgapped and online installations.
+
+Online installation specifics:
+
+* Jump server == bastion server, since it has internet access and can install OpenShift.
+** When doing online installation jump and bastion are used interchangeably.
+* Open link:config.sh[../config.sh].
+* Set:
+** `OCP_OMG_SERVER_ROLE=bastion_online`
+* Follow these instructions.
+
+Airgapped installation:
+
+* Open link:config.sh[../config.sh].
+* Set:
+** `OCP_OMG_SERVER_ROLE=jump`
+* Follow these instructions.
+
 
 == Installation overview
 
 High level steps of the installation:
 
-* Download prereq software and mirror OpenShift images to mirror registry.
-* Transfer mirror registry and other software to bastion-server.
+* _Airgapped install only_:
+** Download prereq software and mirror OpenShift images to mirror registry.
+** Transfer mirror registry and other software to bastion-server.
 * Configure HAProxy, DNS, DHCP, PXE and other supporting services.
 * Install OpenShift.
 
-After OpenShift is installed, there are a few configuration items:
+After OpenShift is installed, there are a few configuration items, including:
 
 * Add image registry storage.
 * Add valid certificate.
@@ -88,15 +114,15 @@ Later, before starting to install OpenShift, prereqs include:
 
 == Prepare servers
 
-Prepare three servers for jump server, bastion and load balancer.
+Prepare servers as needed: jump server, bastion and load balancer.
 
-All three servers should be the same Linux distribution and version. These instructions are written for Red Hat Enterprise Linux 8.2.
+All servers should be the same Linux distribution and version. These instructions are written for Red Hat Enterprise Linux 8.2.
 
 * Jump server has Internet access.
 ** It may have access to internal network.
 ** Has access to yum-repositories (in case of RHEL, Red Hat subscription is enabled).
 * Bastion server has only internal network access.
-* Load balancer  has access to internal network access and also to public/internal network that is accessible by users.
+* Load balancer has access to internal network access and also to public/internal network that is accessible by users.
 
 Installation of these servers is out of scope. This document assumes that the three servers are fresh installs.
 

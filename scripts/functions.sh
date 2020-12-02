@@ -32,7 +32,7 @@ function check_role
 
 function prereq_install
 {
-  if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]]; then
+  if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]] || [[ "$OCP_OMG_SERVER_ROLE" == "bastion_online" ]]; then
     echo "enabling Extra Packages for Enterprise Linux..."
     #see https://fedoraproject.org/wiki/EPEL
     yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
@@ -41,7 +41,7 @@ function prereq_install
   echo "installing packages...."
   yum -y ${__enable_epel_testing} install $__packages 
 
-  if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]]; then
+  if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]] || [[ "$OCP_OMG_SERVER_ROLE" == "bastion_online" ]]; then
     echo "creating alpine-base image..."
     podman build -t alpine-base ./install/alpine-base
     echo "alpine-base image created"

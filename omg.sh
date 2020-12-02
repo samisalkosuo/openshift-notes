@@ -28,8 +28,10 @@ function usage
   echo "    firewall-open                - open firewall for NTP, DNS, DHCP, TFTP"
   echo "    firewall-close               - close firewall for NTP, DNS, DHCP, TFTP"
   echo "    firewall-open-haproxy        - open firewall for HTTP, HTTPS and OpenShift API"
-  echo "    firewall-close-haproxy       - close firewall for HTTP, HTTPS and OpenShift API"
+  echo "    firewall-close-haproxy       - close firewall for HTTP, HTTPS and OpenShift API"  
+  echo "    create-haproxy-dist-package  - create HAProxy package for distribution to HAProxy server"
   echo "    create-dist-packages         - create packages for distribution to bastion"
+
   exit 1
 }
 
@@ -52,7 +54,7 @@ set -e
 
 #prereq packages
 __packages="podman jq nmap ntpstat bash-completion httpd-tools curl wget tmux net-tools nfs-utils python3 git"
-if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]]; then
+if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]] || [[ "$OCP_OMG_SERVER_ROLE" == "bastion_online" ]]; then
   #add these packages when in jump server
   __packages="${__packages} yum-utils createrepo libmodulemd modulemd-tools"
 fi
@@ -64,6 +66,7 @@ fi
 
 #global variables
 __operation=$1
+__current_dir=$(pwd)
 __script_dir=install
 
 if [[ "${__operation}" == "prereq-install" ]]; then

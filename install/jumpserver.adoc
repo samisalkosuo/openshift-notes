@@ -13,14 +13,35 @@ endif::env-github[]
 
 Jump server is the one with internet access and this is used to mirror OpenShift images and download required packages. It may or may not have access to internal network. If it does have access to internal network then required packages can be copied easily to bastion server. If it does not have access to bastion, packages need to be copied by any means necessary.
 
+=== Airgapped or online?
+
+These same instructions are used in both airgapped and online installations.
+
+==== Airgapped installation
+
+* Jump server has internet access and and used to download required software and mirror OpenShift images
+* Bastion server is in internal network without access to Internet.
+* Open link:config.sh[../config.sh].
+* Set:
+** `OCP_OMG_SERVER_ROLE=jump`
+* Follow the instructions.
+
+==== Online installation
+
+* Jump server == bastion server, since it has internet access and can install OpenShift.
+** When doing online installation jump and bastion are used interchangeably.
+* Open link:config.sh[../config.sh].
+* Set:
+** `OCP_OMG_SERVER_ROLE=bastion_online`
+* Follow the instructions.
+
 === RHEL subscription
 
 If using RHEL, use following commands to enabled subscription. If using other distribution, enable required repositories.
 
 * Register to RedHat:
 ** `subscription-manager register --username <username> --password <password> --auto-attach`
-* Enable extras and EPEL repos:
-** `subscription-manager repos --enable=rhel-8-server-extras-rpms`
+
 
 === Pull secret
 
@@ -51,6 +72,8 @@ Review the script to see what is done.
 
 === All at once
 
+==== Airgapped environment
+
 If you dare, do all steps at once in jump server:
 
 ```
@@ -70,6 +93,25 @@ sh omg.sh create-dist-packages
 
 Or do steps one at a time by following the following sections.
 
+==== Online environment
+
+If you dare, do all steps at once in bastion server:
+
+```
+sh omg.sh prereq-install              && \
+sh omg.sh create-ca-cert              && \
+sh omg.sh create-registry-cert        && \
+sh omg.sh create-ntp-server           && \
+sh omg.sh create-apache-rhcos-server  && \
+sh omg.sh create-dns-server           && \
+sh omg.sh create-dhcp-pxe-server      && \
+sh omg.sh create-haproxy-server       && \
+sh omg.sh firewall-open               && \
+sh omg.sh get-kubeterminal
+```
+
+Or do steps one at a time by following the following sections.
+
 === Install prereq packages
 
 Several packages are required, or useful, to prepare for OpenShift install.
@@ -77,7 +119,7 @@ Several packages are required, or useful, to prepare for OpenShift install.
 * Install packages:
 ** `sh omg.sh prereq-install`
 * View link:omg.sh[../omg.sh] to see what packages are installed.
-* Alpine base image is also created during prereq install. The base image is used by containers such as Apache container.
+* Alpine base image is also created during prereq install. The base image is used by containers, such as Apache container.
 
 === tmux
 
@@ -136,6 +178,8 @@ Certificates are required for mirror registry and optionally other services/serv
 
 === Mirror registry
 
+_Airgapped install only._
+
 Image registry is a container and it is used via systemctl.
 
 * Generate and configure mirror registry systemd service using:
@@ -149,6 +193,8 @@ Image registry is a container and it is used via systemctl.
 ** You should get response: `{"repositories":[]}`
 
 === Mirroring
+
+_Airgapped install only._
 
 Mirroring process downloads OpenShift images from Red Hat and uploads them to mirror registry. This process requires authentication for both Red Hat registries and local mirror registry.
 
@@ -233,7 +279,7 @@ Two different Apache server containers for RHCOS and ignitions files is used bec
 
 ==== Apache for ignition files
 
-Will be create later in bastion server.
+Will be create later during installation process.
 
 === DNS
 
@@ -267,7 +313,7 @@ DHCP and PXE environment,that includes DHCP and TFTP server, are generated from 
 
 === HAProxy
 
-HAProxy is used as load balancer in airgapped OpenShift installation. Only one HAProxy is used in this installation.
+HAProxy is used as load balancer in OpenShift installation. Only one HAProxy is used in this installation.
 
 * Create DNS server image using:
 ** `sh omg.sh create-haproxy-server`
@@ -290,6 +336,8 @@ Download KubeTerminal binary using:
 TODO: add NFS client provisioner and other useful stuff
 
 === Package for distribution
+
+_Airgapped install only._
 
 * Create distribution files that can be moved to bastion:
 ** `sh omg.sh create-dist-packages`

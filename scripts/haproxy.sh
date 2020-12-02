@@ -5,6 +5,7 @@ if [[ "${__operation}" == "create-haproxy-server-wob" ]]; then
   echo "creating HAProxy server image without bootstrap..."
   cd ${__script_dir}/haproxy
   sh create_haproxy_server.sh nobootstrap
+  cd ${__current_dir}
   echo "creating HAProxy server image without bootstrap...done."
 
 fi
@@ -13,6 +14,7 @@ if [[ "${__operation}" == "create-haproxy-server" ]]; then
   echo "creating HAProxy server image..."
   cd ${__script_dir}/haproxy
   sh create_haproxy_server.sh
+  cd ${__current_dir}
   echo "creating HAProxy server image...done."
 fi
 

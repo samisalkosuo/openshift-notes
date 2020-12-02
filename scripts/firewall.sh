@@ -13,7 +13,7 @@ if [[ "${__operation}" == "firewall-close" ]]; then
 fi
 
 if [[ "${__operation}" == "firewall-open" ]]; then
-  check_role "jump bastion"
+  check_role "jump bastion bastion_online"
   
   #NTP
   firewall-cmd --add-port=123/udp

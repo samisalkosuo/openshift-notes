@@ -3,8 +3,10 @@
 #OCP_OMG_SERVER_ROLE tells omg.sh script what is the role of the server
 #set OCP_OMG_SERVER_ROLE=jump when using server with access to internet
 #set OCP_OMG_SERVER_ROLE=bastion when using bastion server
+#set OCP_OMG_SERVER_ROLE=bastion_online when using bastion and online install 
 #set OCP_OMG_SERVER_ROLE=haproxy when using haproxy server
 export OCP_OMG_SERVER_ROLE=jump
+
 
 #OpenShift install user, created in bastion server
 export OCP_INSTALL_USER=ocp

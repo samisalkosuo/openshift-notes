@@ -7,34 +7,37 @@ endif::env-github[]
 
 // When not in GitHub add just the header
 ifndef::env-github[]
+[#bastion-server]
 == Bastion server
 endif::env-github[]
 
 The bastion server is the server where OpenShift installation is done. 
 
-Bastion does not have internet access and all files need to be copied from jump server.
+When doing airgapped installation, bastion does not have internet access and all files need to be copied from jump server.
 
 === Copy files
 
-Copy distribution files _dist.tar_ and _mirror-registry.tar_ to bastion-server.
+_Airgapped install only._
 
-=== Prepare bastion
-
+* Copy distribution files _dist.tar_ and _mirror-registry.tar_ to bastion-server.
 * Login to bastion as root.
 * Extract _dist.tar_:
 ** `tar -xf dist.tar`
 * Open link:config.sh[../config.sh] 
 ** Set `OCP_OMG_SERVER_ROLE=bastion`
 ** Then `source config.sh`.
+
+=== Prepare bastion
+
 * Prepare bastion server:
 ** `sh omg.sh prepare-bastion`
 * prepare-bastion does the following:
-** loads images, copies files, extracts scripts and mirror registry files.
+** _Airgapped only_: loads images, copies files, extracts scripts and mirror registry files.
+** creates ocp-user.
 ** creates _install_-directory that includes _install-config.yaml_.
-** create ocp-user for installation and modifies _install-config.yaml_.
+** modifies _install-config.yaml_.
 ** creates manifest and ignition files.
 ** creates,starts and tests (using curl) Apache server for ignition files.
-
 
 === Prepare services
 
@@ -47,7 +50,7 @@ Prepare services for installation: NTP, DNS and PXE environment.
 * After you have correct configuration in _config.sh_, create services:
 ** `sh omg.sh create-dns-server`
 ** `sh omg.sh create-dhcp-pxe-server`
-* NTP and Apache servers were created in jump-server are good to go already.
+* NTP and Apache servers were created earlier and are good to go already.
 * Open firewall ports:
 ** `sh omg.sh firewall-open`
 * Start services:
@@ -63,9 +66,13 @@ Prepare services for installation: NTP, DNS and PXE environment.
 
 You may use bastion also as HAProxy load balancer in which case you can start HAProxy service. However, here we use a dedicated server for HAPoxy load balancer. 
 
+
 Assumption is that HAProxy server is already installed and it has access to the same network as bastion (which is OpenShift internal network).
 
-* Copy _dist.tar_ (from bastion or from jump server) to haproxy server.
+* _Online install only:_
+** Create haproxy-distribution file:
+** `sh omg.sh create-haproxy-dist-package`
+* Copy _dist.tar_  to haproxy server.
 * Login to haproxy server.
 * Extract _dist.tar_:
 ** `tar -xf dist.tar`
@@ -92,15 +99,16 @@ Services required by OpenShift are ready and we can start OpenShift installation
 * Login as user _ocp_ in bastion.
 ** For example, as root: `su - ocp`
 ** Use _ocp_-user  to install and manage OpenShift.
-* Start bootstrap-machine.
+* Power on bootstrap-machine.
 ** It should get IP address from DHCP and RHCOS and ignition files from Apache servers.
 ** Monitor installation using bootstrap-console and when console shows the login prompt:
 ** As _ocp_-user login from bastion to bootstrap:
 ** `ssh core@bootstrap`
 ** You should be able to login.
-** Verify that mirror registry is accessible, for example:
-** `curl -u admin:passw0rd https://mirror-registry.forum.fi.ibm.com:5000/v2/ocp/openshift4/tags/list`
-* Start each master node and verify that you can access them.
+** _Airgapped install only_:
+*** Verify that mirror registry is accessible, for example:
+*** `curl -u admin:passw0rd https://mirror-registry.forum.fi.ibm.com:5000/v2/ocp/openshift4/tags/list`
+* Power on each master node and verify that you can access them.
 * As _ocp_-user go to _~/install_-directory:
 ** Execute:
 ** `openshift-install --dir=./ wait-for bootstrap-complete --log-level debug`

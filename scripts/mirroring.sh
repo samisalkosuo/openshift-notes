@@ -6,6 +6,7 @@ if [[ "${__operation}" == "create-mirror-image-registry" ]]; then
   echo "pulling registry image..."
   podman pull docker.io/library/registry:2  
   sh create_registry.sh ../certificates/domain.crt ../certificates/domain.key
+  cd ${__current_dir}
   echo "creating mirror image registry...done."
 fi
 
@@ -26,8 +27,9 @@ if [[ "${__operation}" == "do-mirroring" ]]; then
   sh create_pull_secrets.sh
   echo "mirroring images.."
   sh mirror.sh
-  echo "downloading openshift-install.."
+  echo "downloading openshift-install and creating install-config.yaml..."
   sh create_install_files.sh ../certificates/CA_$OCP_DOMAIN.crt
+  cd ${__current_dir}
   echo "doing mirroring...done."
 
 fi
