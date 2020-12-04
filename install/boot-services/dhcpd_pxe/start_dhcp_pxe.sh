@@ -5,16 +5,12 @@
 
 #disable dns in dnsmasq
 echo port=0 > /etc/dnsmasq.d/dns.conf
-#start tftp in background
+
 echo "tftp-root=/usr/share/syslinux" > /etc/dnsmasq.d/tftpd.conf
+__dnsmasq_options="--keep-in-foreground --enable-tftp"
 if [[ "$ENABLE_LOG" == "true" ]]; then
-  #start dnsmasq in foreground and log to stdout/err
-  dnsmasq --keep-in-foreground --log-facility=- --enable-tftp &
-else
-  dnsmasq --enable-tftp
+  __dnsmasq_options="${__dnsmasq_options} --log-facility=-"
 fi
-
-
 
 #change tftp server to container IP 
 #the command retrieves IP address of specified interface that is not given by dhcp
@@ -29,4 +25,9 @@ if [[ "$ENABLE_LOG" == "true" ]]; then
   #set -d option to log to stdout/err  
   __dhcpd_options="-d"
 fi
-exec dhcpd $__dhcpd_options -user dhcp -group daemon
+
+#start dhcpd in background
+dhcpd $__dhcpd_options -user dhcp -group daemon &
+
+#start tftp/dnsmasq in foreground
+exec dnsmasq $__dnsmasq_options
