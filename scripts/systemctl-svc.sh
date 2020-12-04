@@ -37,6 +37,7 @@ function doServiceOperation
     serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_NTP_SERVER
     serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_DNS_SERVER
     serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_DHCPPXE_SERVER
+    serviceOperation ${__systemctlOperation} $OCP_SERVICE_NAME_EXTERNAL_REGISTRY
   fi
   
   if [[ "$__role" == "haproxy" ]]; then

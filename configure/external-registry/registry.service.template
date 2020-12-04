@@ -1,0 +1,12 @@
+[Unit]
+Description=%SERVICE_NAME% Podman Container
+
+[Service]
+ExecStartPre=-/usr/bin/podman rm -i -f %SERVICE_NAME%
+ExecStart=/usr/bin/podman run --rm --name %SERVICE_NAME% -p %REGISTRY_PORT%:5000 -v %REGISTRY_DIR%/data:/var/lib/registry:z -v %REGISTRY_DIR%/auth:/auth:z -e REGISTRY_STORAGE_DELETE_ENABLED=true -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v %REGISTRY_DIR%/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
+Restart=always
+KillMode=control-group
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

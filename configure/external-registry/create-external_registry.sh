@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#this script creates directory, service file and other for container registry
+#this script creates directory, service file and others for external image registry
+#external image registry is used to hold third party images for OpenShift
 
 function usageEnv
 {
@@ -12,24 +13,24 @@ if [[ "$OCP_DOMAIN" == "" ]]; then
   usageEnv OCP_DOMAIN
 fi
 
-if [[ "$OCP_MIRROR_REGISTRY_PORT" == "" ]]; then
-  usageEnv OCP_MIRROR_REGISTRY_PORT
+if [[ "$OCP_EXTERNAL_REGISTRY_PORT" == "" ]]; then
+  usageEnv OCP_EXTERNAL_REGISTRY_PORT
 fi
 
-if [[ "$OCP_SERVICE_NAME_MIRROR_REGISTRY" == "" ]]; then
-  usageEnv OCP_SERVICE_NAME_MIRROR_REGISTRY
+if [[ "$OCP_SERVICE_NAME_EXTERNAL_REGISTRY" == "" ]]; then
+  usageEnv OCP_SERVICE_NAME_EXTERNAL_REGISTRY
 fi
 
-if [[ "$OCP_MIRROR_REGISTRY_DIRECTORY" == "" ]]; then
-  usageEnv OCP_MIRROR_REGISTRY_DIRECTORY
+if [[ "$OCP_EXTERNAL_REGISTRY_DIRECTORY" == "" ]]; then
+  usageEnv OCP_EXTERNAL_REGISTRY_DIRECTORY
 fi
 
-if [[ "$OCP_MIRROR_REGISTRY_USER_NAME" == "" ]]; then
-  usageEnv OCP_MIRROR_REGISTRY_USER_NAME
+if [[ "$OCP_EXTERNAL_REGISTRY_USER_NAME" == "" ]]; then
+  usageEnv OCP_EXTERNAL_REGISTRY_USER_NAME
 fi
 
-if [[ "$OCP_MIRROR_REGISTRY_USER_PASSWORD" == "" ]]; then
-  usageEnv OCP_MIRROR_REGISTRY_USER_PASSWORD
+if [[ "$OCP_EXTERNAL_REGISTRY_USER_PASSWORD" == "" ]]; then
+  usageEnv OCP_EXTERNAL_REGISTRY_USER_PASSWORD
 fi
 
 set -e
@@ -53,14 +54,14 @@ if [[ "$2" == "" ]]; then
 fi
 
 #variables from args
-__registry_name=$OCP_SERVICE_NAME_MIRROR_REGISTRY
-__registry_dir=$OCP_MIRROR_REGISTRY_DIRECTORY
-__registry_user_name=$OCP_MIRROR_REGISTRY_USER_NAME
-__registry_user_password=$OCP_MIRROR_REGISTRY_USER_PASSWORD
-__registry_port=$OCP_MIRROR_REGISTRY_PORT
+__registry_name=$OCP_SERVICE_NAME_EXTERNAL_REGISTRY
+__registry_dir=$OCP_EXTERNAL_REGISTRY_DIRECTORY
+__registry_user_name=$OCP_EXTERNAL_REGISTRY_USER_NAME
+__registry_user_password=$OCP_EXTERNAL_REGISTRY_USER_PASSWORD
+__registry_port=$OCP_EXTERNAL_REGISTRY_PORT
 __registry_crt_file=$1
 __registry_key_file=$2
-__registry_host_name=$OCP_MIRROR_REGISTRY_HOST_NAME
+__registry_host_name=$OCP_EXTERNAL_REGISTRY_HOST_NAME
 
 #create registry directories
 mkdir -p ${__registry_dir}/{auth,certs,data}
@@ -91,8 +92,8 @@ systemctl start ${__registry_name}
 #sleeping 3 seconds so that registry starts..
 sleep 3
 
-echo "adding \"127.0.01  ${__registry_host_name}.${OCP_DOMAIN}\" to /etc/hosts..."
-echo "127.0.0.1 ${__registry_host_name}.${OCP_DOMAIN}" >> /etc/hosts
+#echo "adding \"127.0.01  ${__registry_host_name}.${OCP_DOMAIN}\" to /etc/hosts..."
+#echo "127.0.0.1 ${__registry_host_name}.${OCP_DOMAIN}" >> /etc/hosts
 
 echo "Use following commands to interact with the registry:"
 echo "  " systemctl start ${__registry_name}
@@ -102,4 +103,5 @@ echo "  " systemctl status ${__registry_name}
 echo "  " systemctl enable ${__registry_name}
 echo ""
 echo "Testing registry using command: curl -u ${__registry_user_name}:${__registry_user_password} https://${__registry_host_name}.${OCP_DOMAIN}:${__registry_port}/v2/_catalog"
-curl -u ${__registry_user_name}:${__registry_user_password}  https://${__registry_host_name}.${OCP_DOMAIN}:${__registry_port}/v2/_catalog
+echo "Remember to add ${__registry_host_name}.${OCP_DOMAIN} to /etc/hosts or DNS."
+curl -u ${__registry_user_name}:${__registry_user_password} https://${__registry_host_name}.${OCP_DOMAIN}:${__registry_port}/v2/_catalog

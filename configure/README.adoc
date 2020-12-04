@@ -1,0 +1,55 @@
+= OpenShift configuration
+:toc: left
+:toc-title: Table of Contents
+
+This document describes how to do various configuration in OpenShift.
+
+== External registry
+
+External registry is image registry for containers that should be available for OpenShift but, for any reason, not available from public registry or internal image registry.
+
+The most obvious use case for external registry is for the airgapped OpenShift installation.
+
+* Open link:../config.sh[config.sh]
+** Find and modify _OCP_EXTERNAL_REGISTRY*_ environment variables to match your preferences.
+* During installation a mirror registry was created but that is used only for OpenShift images.
+* The name for the external registry is:
+** _external-registry_, this name was added to registry certificate during installation.
+* External registry uses the same certificate as mirror registry.
+* Create external registry in bastion server:
+** `sh omg.sh create-external-registry`
+* Registry container is controlled using systemctl.
+
+=== Configure OpenShift
+
+When using external registry in OpenShift, pull secret is required so that pods can pull images from the registry.
+
+Pull secret can be added for project or it can be added global cluster pull secret, that is used here. See also documentation about https://docs.openshift.com/container-platform/4.6/openshift_images/managing_images/using-image-pull-secrets.html#images-update-global-pull-secret_using-image-pull-secrets[using image pull secrets].
+
+Update global pull secret:
+
+* Open shell and login to OpenShift using cluster administrator rights.
+* Script link:external-registry/update_global_pull_secret.sh[update_global_pull_secret.sh] is used to add or edit global pull secret:
+** `sh update_global_pull_secret.sh https://external-registry.forum.fi.ibm.com:5001 admin passw0rd`
+* Global pull secret is rolled out to each node in the cluster.
+
+=== Images
+
+Push images to external registry:
+
+* Login to external registry, for example:
+** `podman login -u admin -p passw0rd external-registry.forum.fi.ibm.com:5001`
+* Tag image:
+* Push image:
+* Use image in YAML files etc.
+
+== NFS storage class
+
+Dynamic provisioner for NFS.
+
+== Internal image registry
+
+Configure internal image registry
+
+
+== Trusted certificate

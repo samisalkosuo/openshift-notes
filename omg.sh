@@ -10,6 +10,7 @@ function usage
   echo "    create-ca-cert               - create CA certificate"
   echo "    create-registry-cert         - create registry certificate"
   echo "    create-mirror-image-registry - create mirror image registry"
+  echo "    create-external-registry     - create external image registry"  
   echo "    do-mirroring                 - mirror images from Red Hat"
   echo "    create-ntp-server            - create NTP server image"
   echo "    create-apache-rhcos-server   - create Apache server image for RHCOS binaries"
@@ -68,6 +69,7 @@ fi
 __operation=$1
 __current_dir=$(pwd)
 __script_dir=install
+__config_dir=configure
 
 if [[ "${__operation}" == "prereq-install" ]]; then
   prereq_install
@@ -82,6 +84,6 @@ fi
 . scripts/mirroring.sh
 . scripts/certificates.sh
 . scripts/bastion.sh
-
+. scripts/config/external-registry.sh
 
 #FYI, script name "omg" comes from "(O)penshift install (M)ana(G)er tool" :-)
