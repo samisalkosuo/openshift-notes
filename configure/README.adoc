@@ -43,7 +43,7 @@ Push images to external registry:
 * Push image:
 * Use image in YAML files etc.
 
-== NFS storage class
+== NFS client provisioner
 
 Dynamic provisioner for NFS.
 
@@ -53,3 +53,7 @@ Configure internal image registry
 
 
 == Trusted certificate
+
+== LDAP
+
+OpenLDAP for demo https://github.com/samisalkosuo/openldap-docker
