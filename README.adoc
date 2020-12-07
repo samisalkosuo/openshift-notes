@@ -31,6 +31,8 @@ The architecture of OpenShift in the context of this repository. Just a few comm
 * Most of the services (DHCP, DNS, NTP, Apache, etc.) are implemented as containers and executed using podman.
 ** This is because containers are easy to distribute and it is easy to dedicate and configure them specifically for OpenShift.
 
+link:install/[install]-directory includes instructions and scripts to install OpenShift.
+
 Airgapped installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-network-user-infra_installing-restricted-networks-bare-metal[OpenShift installation in restricted network bare metal installation].
 
 Online installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-bare-metal.html#installation-obtaining-installer_installing-bare-metal[Installing a cluster on bare metal].
