@@ -37,15 +37,70 @@ Update global pull secret:
 
 Push images to external registry:
 
+* Pull image from public registry.
+** If using airgapped OpenShift pull image from Internet, save it, copy to bastion and load it locally.
 * Login to external registry, for example:
 ** `podman login -u admin -p passw0rd external-registry.forum.fi.ibm.com:5001`
 * Tag image:
+** `podman tag <image> external-registry.forum.fi.ibm.com:5001/<myimage>`
 * Push image:
+** `podman push external-registry.forum.fi.ibm.com:5001/<myimage>`
 * Use image in YAML files etc.
 
 == NFS client provisioner
 
-Dynamic provisioner for NFS.
+https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner[Kubernetes NFS-Client Provisioner] provides dynamic provisioning using existing NFS server. Great way to provide initial storage class for OpenShift.
+
+=== Online installation
+
+* Follow instructions in https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner.
+
+=== Airgapped installation
+
+Since OpenShift does not have access to Internet, extra steps are required to install provisioner.
+
+* Login to jump server.
+* Package provisioner image and deplyment files using link:nfs-client-provisioner/package_provisioner_image.sh[save_provisioner_image.sh]:
+** `sh package_provisioner_image.sh`
+* Copy _nfs-client-provisioner-files.tar_ to bastion server.
+* Login to bastion server.
+* Extract _nfs-client-provisioner-files.tar_:
+** `tar -xf nfs-client-provisioner-files.tar`
+* Change to _nfs-client-provisioner_-directory.
+* Load provisioner image:
+** `podman load < nfs-client-provisioner.tar`
+* Tag image:
+** `podman tag nfs-client-provisioner external-registry.forum.fi.ibm.com:5001/nfs-client-provisioner:latest`
+* Push image:
+** `podman push external-registry.forum.fi.ibm.com:5001/nfs-client-provisioner:latest`
+* If you have NFS server, you need info about it.
+** Or set your own NFS as described in the next section.
+* Open _deployment.yaml_.
+* Find _image_-entry and change to correct provisioner image. For example:
+** `external-registry.forum.fi.ibm.com:5001/nfs-client-provisioner:latest`
+* Set IP address and path of your NFS server.
+* Login as cluster administrator using oc-client.
+* Setup provisioner:
+** `oc create -f rbac.yaml`
+** `oc create -f deployment.yaml`
+** `oc create -f class.yaml`
+* Test by creating persistent volume claim:
+** `oc create -f test-claim.yaml`
+** There should test-claim directory in the NFS server.
+* Get storage class:
+** `oc get sc`
+** And you should see _managed-nfs-storage_-storageclass.
+* Optionally set _managed-nfs-storage_-storageclass as default:
+** `oc patch storageclass managed-nfs-storage -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'`
+
+==== NFS server
+
+As an example, NFS server can be installed on the bastion server.
+
+* Execute script link:nfs-client-provisioner/setup_nfs_server.sh[setup_nfs_server.sh]:
+** `sh setup_nfs_server.sh`
+** Script sets up NFS server using directory _/mnt/nfs_share_.
+** NFS server allows clients from OpenShift internal network. Internal network is set using _OCP_DHCP_NETWORK_- environment variable set in link:../config.sh[config.sh].
 
 == Internal image registry
 
