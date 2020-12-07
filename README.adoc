@@ -1,4 +1,4 @@
-# OpenShift Notes and Commentary
+= OpenShift Notes and Commentary
 
 This repository includes OpenShift related notes, scripts and so on. 
 
@@ -7,3 +7,31 @@ This repository includes OpenShift related notes, scripts and so on.
 * link:install/[install]-directory includes instructions and scripts to install OpenShift.
 
 Download or clone this repository to local environment.
+
+== Architecture
+
+.OpenShift architecture
+image::images/OpenShift_architecture.svg[]
+
+The architecture of OpenShift in the context of this repository. Just a few comments about it:
+
+* Architecture shows an airgapped environment, but it can be made online environment by adding a gateway from internal OCP network to network with external access.
+* Jump server is the one used to download OpenShift images and other software.
+** Files from jump server are transferred to bastion.
+* Bastion server is the one that is used to install/manage OpenShift environment.
+* Bastion also includes all supporting services like DHCP.
+** All the services could be in dedicated servers, if so desired.
+* Load balancer is HAProxy in this environment.
+** Some other load balancer can be also used.
+** Load balancer must be accessible from OpenShift internal network.
+* LDAP and NFS in bastion are used in this environment to provide those services.
+** In real life, LDAP would be enterprise LDAP somewhere and NFS would be a typical enterprise storage solution.
+** Or storage could be https://www.openshift.com/products/container-storage/[Red Hat OpenShift Container Storage].
+* Two worker nodes are labeled so that ingress router will run on those nodes.
+* Most of the services (DHCP, DNS, NTP, Apache, etc.) are implemented as containers and executed using podman.
+** This is because containers are easy to distribute and it is easy to dedicate and configure them specifically for OpenShift.
+
+Airgapped installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-network-user-infra_installing-restricted-networks-bare-metal[OpenShift installation in restricted network bare metal installation].
+
+Online installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-bare-metal.html#installation-obtaining-installer_installing-bare-metal[Installing a cluster on bare metal].
+

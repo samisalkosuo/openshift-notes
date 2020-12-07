@@ -4,34 +4,7 @@
 
 This document describes how to install OpenShift 4.6 on airgapped or online environment. A few scripts are provided in this repository to make the installation relatively easy.
 
-== Architecture
-
-.OpenShift architecture
-image::architecture/OpenShift_architecture.svg[]
-
-The architecture of OpenShift in the context of this repository. Just a few comments about it:
-
-* Architecture shows an airgapped environment, but it can be made online environment by adding a gateway from internal OCP network to network with external access.
-* Jump server is the one used to download OpenShift images and other software.
-** Files from jump server are transferred to bastion.
-* Bastion server is the one that is used to install/manage OpenShift environment.
-* Bastion also includes all supporting services like DHCP.
-** All the services could be in dedicated servers, if so desired.
-* Load balancer is HAProxy in this environment.
-** Some other load balancer can be also used.
-** Load balancer must be accessible from OpenShift internal network.
-* LDAP and NFS in bastion are used in this environment to provide those services.
-** In real life, LDAP would be enterprise LDAP somewhere and NFS would be a typical enterprise storage solution.
-** Or storage could be https://www.openshift.com/products/container-storage/[Red Hat OpenShift Container Storage].
-* Two worker nodes are labeled so that ingress router will run on those nodes.
-* Most of the services (DHCP, DNS, NTP, Apache, etc.) are implemented as containers and executed using podman.
-** This is because containers are easy to distribute and it is easy to dedicate and configure them specifically for OpenShift.
-
-Airgapped installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-network-user-infra_installing-restricted-networks-bare-metal[OpenShift installation in restricted network bare metal installation].
-
-Online installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-bare-metal.html#installation-obtaining-installer_installing-bare-metal[Installing a cluster on bare metal].
-
-=== Servers
+== Servers
 
 The following servers are needed to install OpenShift:
 
@@ -54,10 +27,6 @@ The following servers are needed to install OpenShift:
 In addition to RHEL, Red Hat CoreOS is used in all OpenShift nodes. CoreOS servers are installed during installation process using PXE, https://en.wikipedia.org/wiki/Preboot_Execution_Environment[Preboot eXecution Environment].
 
 Be aware that access to the environment is required. For example, if using virtualization like VMWare, sufficient access rights is required to create empty virtual machines for OpenShift. 
-
-=== Network
-
-Network is in place as shown in the architecture. Setting up the network is out of scope of this document. Note that information about the network is required for OpenShift installation. 
 
 == Airgapped or online?
 
