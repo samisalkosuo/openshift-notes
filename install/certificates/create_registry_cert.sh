@@ -76,7 +76,7 @@ openssl x509 -req \
              -CAcreateserial \
              -out ${__base_name}.crt \
              -days ${__validity_days} \
-             -sha256 \
+             -sha256 
 
 #combine CA and registry certs
 cat ${__base_name}.crt CA_${__domain}.crt > domain.crt

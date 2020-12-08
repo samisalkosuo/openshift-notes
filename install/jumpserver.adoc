@@ -331,10 +331,6 @@ Download KubeTerminal binary using:
 
 * `sh omg.sh get-kubeterminal`
 
-=== Other
-
-TODO: add NFS client provisioner and other useful stuff
-
 === Package for distribution
 
 _Airgapped install only._
