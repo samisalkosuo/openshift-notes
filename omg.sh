@@ -54,7 +54,7 @@ fi
 set -e 
 
 #prereq packages
-__packages="podman jq nmap ntpstat bash-completion httpd-tools curl wget tmux net-tools nfs-utils python3 git"
+__packages="podman jq nmap ntpstat bash-completion httpd-tools curl wget tmux net-tools nfs-utils python3 git openldap openldap-clients openldap-devel"
 if [[ "$OCP_OMG_SERVER_ROLE" == "jump" ]] || [[ "$OCP_OMG_SERVER_ROLE" == "bastion_online" ]]; then
   #add these packages when in jump server
   __packages="${__packages} yum-utils createrepo libmodulemd modulemd-tools"
