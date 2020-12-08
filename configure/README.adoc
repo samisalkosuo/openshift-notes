@@ -2,50 +2,7 @@
 :toc: left
 :toc-title: Table of Contents
 
-This document describes how to do various configuration in OpenShift.
-
-== External registry
-
-External registry is image registry for containers that should be available for OpenShift but, for any reason, not available from public registry or internal image registry.
-
-The most obvious use case for external registry is for the airgapped OpenShift installation.
-
-* Open link:../config.sh[config.sh]
-** Find and modify _OCP_EXTERNAL_REGISTRY*_ environment variables to match your preferences.
-* During installation a mirror registry was created but that is used only for OpenShift images.
-* The name for the external registry is:
-** _external-registry_, this name was added to registry certificate during installation.
-* External registry uses the same certificate as mirror registry.
-* Create external registry in bastion server:
-** `sh omg.sh create-external-registry`
-* Registry container is controlled using systemctl.
-
-=== Configure OpenShift
-
-When using external registry in OpenShift, pull secret is required so that pods can pull images from the registry.
-
-Pull secret can be added for project or it can be added global cluster pull secret, that is used here. See also documentation about https://docs.openshift.com/container-platform/4.6/openshift_images/managing_images/using-image-pull-secrets.html#images-update-global-pull-secret_using-image-pull-secrets[using image pull secrets].
-
-Update global pull secret:
-
-* Open shell and login to OpenShift using cluster administrator rights.
-* Script link:external-registry/update_global_pull_secret.sh[update_global_pull_secret.sh] is used to add or edit global pull secret:
-** `sh update_global_pull_secret.sh https://external-registry.forum.fi.ibm.com:5001 admin passw0rd`
-* Global pull secret is rolled out to each node in the cluster.
-
-=== Images
-
-Push images to external registry:
-
-* Pull image from public registry.
-** If using airgapped OpenShift pull image from Internet, save it, copy to bastion and load it locally.
-* Login to external registry, for example:
-** `podman login -u admin -p passw0rd external-registry.forum.fi.ibm.com:5001`
-* Tag image:
-** `podman tag <image> external-registry.forum.fi.ibm.com:5001/<myimage>`
-* Push image:
-** `podman push external-registry.forum.fi.ibm.com:5001/<myimage>`
-* Use image in YAML files etc.
+This document describes how to do various configurations in OpenShift.
 
 == NFS client provisioner
 
@@ -102,13 +59,120 @@ As an example, NFS server can be installed on the bastion server.
 ** Script sets up NFS server using directory _/mnt/nfs_share_.
 ** NFS server allows clients from OpenShift internal network. Internal network is set using _OCP_DHCP_NETWORK_- environment variable set in link:../config.sh[config.sh].
 
-== Internal image registry
+== Image registry
 
-Configure internal image registry
+=== External registry
 
+External registry is an image registry for containers that should be available for OpenShift but, for any reason, not available from public registry or internal image registry.
 
-== Trusted certificate
+The most obvious use case for external registry is for the airgapped OpenShift installation.
+
+* Open link:../config.sh[config.sh]
+** Find and modify _OCP_EXTERNAL_REGISTRY*_ environment variables to match your preferences.
+* During installation a mirror registry was created but that is used only for OpenShift images.
+* The name for the external registry is:
+** _external-registry_, this name was added to registry certificate during installation.
+* External registry uses the same certificate as mirror registry.
+* Create external registry in bastion server:
+** `sh omg.sh create-external-registry`
+* Registry container is controlled using systemctl.
+
+==== Configure OpenShift
+
+When using external registry in OpenShift, pull secret is required so that pods can pull images from the registry.
+
+Pull secret can be added for a project or it can be added as global cluster pull secret. Global pull secret is used here. See also documentation about https://docs.openshift.com/container-platform/4.6/openshift_images/managing_images/using-image-pull-secrets.html#images-update-global-pull-secret_using-image-pull-secrets[using image pull secrets].
+
+Update global pull secret:
+
+* Open shell and use `oc login` to login to OpenShift using cluster administrator rights.
+* Script link:external-registry/update_global_pull_secret.sh[update_global_pull_secret.sh] is used to add or edit global pull secret:
+** `sh update_global_pull_secret.sh https://external-registry.forum.fi.ibm.com:5001 admin passw0rd`
+* Global pull secret is rolled out to each node in the cluster.
+
+==== Images
+
+Push images to external registry:
+
+* Pull image from public registry.
+** If using airgapped OpenShift pull image from Internet, save it, copy to bastion and load it locally.
+* Login to external registry, for example:
+** `podman login -u admin -p passw0rd external-registry.forum.fi.ibm.com:5001`
+* Tag image:
+** `podman tag <image> external-registry.forum.fi.ibm.com:5001/<myimage>`
+* Push image:
+** `podman push external-registry.forum.fi.ibm.com:5001/<myimage>`
+* Use image in YAML files etc.
+
+=== Internal registry
+
+Internal image registry is not initially available in OpenShift UPI online or airgapped installations.
+
+* Image registry requires persistent storage before it can be made available.
+* Configure storageclass for dynamic provisioning.
+** For example, NFS provisioner described previously.
+* Configure a default storageclass (like NFS provisioner).
+* Patch image registry operator configuration:
+** `oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'``
+* The patch-command creates also default route for the registry.
+** Get default route using command:
+** `oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'`
+* Registry can not be used until an identity provider (for example LDAP or HTPasswd) has been configured.
+** See later section about LDAP identity provider.
+** See https://docs.openshift.com/container-platform/4.6/authentication/identity_providers/configuring-htpasswd-identity-provider.html[docs] about HTPasswd identity provider.
 
 == LDAP
 
-OpenLDAP for demo https://github.com/samisalkosuo/openldap-docker
+LDAP used in this context is https://github.com/samisalkosuo/openldap-docker[OpenLDAP demo container] and it is running on bastion server.
+
+https://docs.openshift.com/container-platform/4.6/authentication/identity_providers/configuring-ldap-identity-provider.html[OpenShift documentation about configuring identity providers].
+
+Configure OpenShift to use LDAP identity provider:
+
+* Have LDAP connection information.
+** For example, https://github.com/samisalkosuo/openldap-docker#ldap-connection-and-filters[see OpenLDAP demo connection info].
+* Edit link:ldap/configure_ldap_idp.sh[configure_ldap_idp.sh] to match your environment.
+* Execute it:
+** `sh configure_ldap_idp.sh`
+* Test configuration:
+** Login as LDAP user: `oc login -u <user>`
+** `oc whoami`
+
+=== Cluster admin user
+
+By default, there are no cluster admin users when adding new identity provider.
+
+* As cluster admin, such as _kubeadmin_, add new cluster admin user:
+** `oc adm policy add-cluster-role-to-user cluster-admin <user>`
+
+
+== Certificates
+
+After installing OpenShift, router uses self-signed certificate. Typical use case is to have a certificate signed by some Certificate Authority.
+
+=== CA certificate
+
+During installation, a custom CA certificate was created and it was added to _install-config.yaml_ and then it was added as user CA to OpenShift.
+
+* Check custom CA:
+** `oc -n openshift-config describe cm user-ca-bundle`
+* However, custom CA is not trusted.
+** Add custom CA as trusted CA:
+** `oc patch proxy/cluster --type=merge --patch='{"spec":{"trustedCA":{"name":"user-ca-bundle"}}}'`
+* If you need to add new CA certificate, use command:
+** `oc -n openshift-config create configmap custom-ca --from-file=ca-bundle.crt=<ca cert file>``
+     
+=== Ingress certificate
+
+Change ingress certificate:
+
+* Prereq:
+** Certificate for wildcard domain _*.apps.ocp-07.forum.fi.ibm.com_ exists and you have both _.crt_ and _.key_ files.
+** Certificate is signed by CA, for example custom CA created during installation.
+** Example files: _ocp_ingress.crt_ and _ocp_ingress.key_.
+* Login as cluster admin.
+* Add certificate as a secret:
+** `oc -n openshift-ingress create secret tls custom-ingress-cert --cert=ocp_ingress.crt --key=ocp_ingress.key`
+* Patch Ingress operator to use custom certificate:
+** `oc patch --type=merge -n openshift-ingress-operator ingresscontrollers/default --patch '{"spec":{"defaultCertificate":{"name":"custom-ingress-cert"}}}'`
+* Router pods are restarted and will reflect new Ingress certificate.
