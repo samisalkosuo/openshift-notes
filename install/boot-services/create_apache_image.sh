@@ -9,8 +9,8 @@ function usage
   exit 1  
 }
 
-if [[ "$OCP_MAJOR_RELEASE" == "" ]]; then
-  usage OCP_MAJOR_RELEASE
+if [[ "$OCP_RHCOS_MAJOR_RELEASE" == "" ]]; then
+  usage OCP_RHCOS_MAJOR_RELEASE
 fi
 
 if [[ "$OCP_VERSION" == "" ]]; then
@@ -31,7 +31,7 @@ __architecture=x86_64
 set -e
 
 echo "Building ${__name}:${OCP_VERSION} image..."
-podman build -t ${__name}:${OCP_VERSION} --build-arg OCP_RELEASE=${OCP_MAJOR_RELEASE} --build-arg OCP_VERSION=${OCP_VERSION}  ./apache
+podman build -t ${__name}:${OCP_VERSION} --build-arg OCP_RELEASE=${OCP_RHCOS_MAJOR_RELEASE} --build-arg OCP_VERSION=${OCP_VERSION}  ./apache
 
 
 echo "Creating service file for ${__name}:${OCP_VERSION} image..."
