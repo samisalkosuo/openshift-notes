@@ -57,7 +57,8 @@ Prepare services for installation: NTP, DNS and PXE environment.
 ** `sh omg.sh svc-start`
 * Other commands for services:
 ** `sh omg.sh svc-stop`, stops services.
-** `sh omg.sh svc-status`, show status ofservices.
+** `sh omg.sh svc-restart`, restart services.
+** `sh omg.sh svc-status`, show status of services.
 ** `sh omg.sh svc-enable`, enable services to start on boot.
 ** `sh omg.sh svc-disable`, disable services to not start on boot.
 ** Or use _systemctl_-command.

@@ -54,6 +54,10 @@ if [[ "${__operation}" == "svc-stop" ]]; then
   doServiceOperation stop
 fi
 
+if [[ "${__operation}" == "svc-restart" ]]; then
+  doServiceOperation restart
+fi
+
 if [[ "${__operation}" == "svc-enable" ]]; then
   doServiceOperation enable
 fi

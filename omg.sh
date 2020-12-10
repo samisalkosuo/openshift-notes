@@ -24,6 +24,7 @@ function usage
   echo "    prepare-bastion              - prepare bastion from dist packages"
   echo "    svc-start                    - start systemd-services"
   echo "    svc-stop                     - stop systemd-services"
+  echo "    svc-restart                  - restart systemd-services"
   echo "    svc-enable                   - enable systemd-services"
   echo "    svc-disable                  - disable systemd-services"
   echo "    svc-status                   - show status of systemd-services"
