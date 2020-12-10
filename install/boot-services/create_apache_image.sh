@@ -13,8 +13,8 @@ if [[ "$OCP_RHCOS_MAJOR_RELEASE" == "" ]]; then
   usage OCP_RHCOS_MAJOR_RELEASE
 fi
 
-if [[ "$OCP_VERSION" == "" ]]; then
-  usage OCP_VERSION
+if [[ "$OCP_RHCOS_VERSION" == "" ]]; then
+  usage OCP_RHCOS_VERSION
 fi
 
 if [[ "$OCP_APACHE_RHCOS_PORT" == "" ]]; then
@@ -30,16 +30,16 @@ __architecture=x86_64
 
 set -e
 
-echo "Building ${__name}:${OCP_VERSION} image..."
-podman build -t ${__name}:${OCP_VERSION} --build-arg OCP_RELEASE=${OCP_RHCOS_MAJOR_RELEASE} --build-arg OCP_VERSION=${OCP_VERSION}  ./apache
+echo "Building ${__name}:${OCP_RHCOS_VERSION} image..."
+podman build -t ${__name}:${OCP_RHCOS_VERSION} --build-arg OCP_RELEASE=${OCP_RHCOS_MAJOR_RELEASE} --build-arg OCP_RHCOS_VERSION=${OCP_RHCOS_VERSION}  ./apache
 
 
-echo "Creating service file for ${__name}:${OCP_VERSION} image..."
+echo "Creating service file for ${__name}:${OCP_RHCOS_VERSION} image..."
 __service_file=apache/${__name}.service
 cp apache/apache.service.template ${__service_file}
 
 sed -i s!%SERVICE_NAME%!${__name}!g ${__service_file}
-sed -i s!%VERSION%!${OCP_VERSION}!g ${__service_file}
+sed -i s!%VERSION%!${OCP_RHCOS_VERSION}!g ${__service_file}
 sed -i s!%PORT%!${OCP_APACHE_RHCOS_PORT}!g ${__service_file}
 
 cp ${__service_file} /etc/systemd/system/

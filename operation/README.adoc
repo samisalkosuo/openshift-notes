@@ -1,0 +1,61 @@
+= OpenShift configuration
+:toc: left
+:toc-title: Table of Contents
+
+This document describes how to do various operational tasks in OpenShift.
+
+== Upgrade airgapped OpenShift
+
+Upgrading airgapped OpenShift requires mirroring of updated images from Internet and then moving them to mirror registry in airgapped environment.
+
+https://docs.openshift.com/container-platform/4.6/updating/updating-restricted-network-cluster.html[Upgrade in airgapped environment is documented].
+
+This assumes that OpenShift was installed using instructions in this repository so there is a mirror registry in the bastion server.
+
+* Determine new version:
+** Check OpenShift versions: https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/.
+** Go to directory of desired OpenShift version.
+** View _release.txt_ file and verify that desired version can upgrade existing version.
+*** For example: https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.6.7/release.txt[v4.6.7 can upgrade v4.6.1].
+* Login to jump server.
+* Edit link:../config.sh[config.sh] and set _OCP_VERSION_ to the desired version.
+** Source new configuration: `source config.sh`
+* Create mirror-package that includes images of the new OpenShift version:
+** `sh omg.sh create-mirror-package`
+** Images are downloaded and tar file is created. 
+*** Tar file name example: _mirror-images-4.6.7.tar_.
+* Login to bastion server.
+* Login to ocp as cluster admininstrator.
+* Set _OCP_VERSION_ to the correct version in -config.sh_.
+* Upload images to mirror registry:
+** `sh omg.sh upload-mirror-package`
+** Command extract mirror image tar file, pushes images to image registry and applies the mirrored release image signature config map to OpenShift cluster.
+* After command completes, an upgrade command is printed. For example:
+** `oc adm upgrade --allow-explicit-upgrade --to-image mirror-registry.forum.fi.ibm.com:5000/ocp/openshift4@sha256:6ddbf56b7f9776c0498f23a54b65a06b3b846c1012200c5609c4bb716b6bdcdf`
+* Optionally verify that images are in the registry:
+** `curl -u admin:passw0rd https://mirror-registry.forum.fi.ibm.com:5000/v2/ocp/openshift4/tags/list | jq`
+* Execute command to start OpenShift upgrade.
+* Upgrade takes a moment...
+* Monitor upgrade process by any of the following:
+** OpenShift web console:
+*** _Administration -> Cluster Settings_.
+** `oc adm upgrade`
+** `oc get clusteroperators`
+** `oc get nodes`
+
+
+== Add worker node
+
+== Remove worker node
+
+== Dedicate router nodes
+
+== Backup etcd
+
+See backup instructions in docs https://docs.openshift.com/container-platform/4.6/backup_and_restore/backing-up-etcd.html.
+
+* Script link:backup/backup_etcd.sh[backup_etcd.sh] backs up etcd as described in documentation.
+* Backup files are copied to local directory.
+* Move files to location that is safe if disaster occurs.
+
+== Restore etcd

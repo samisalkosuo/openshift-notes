@@ -96,7 +96,7 @@ if [[ "${__operation}" == "create-dist-packages" ]]; then
   echo "creating tar..."
   tar -cf ${__dist_dir}.tar ${__dist_dir}/
   #add omg-sh and other files to dist.tar file
-  tar -rf ${__dist_dir}.tar *sh *adoc ${__script_dir}/*adoc scripts/* configure/* 
+  tar -rf ${__dist_dir}.tar *sh *adoc ${__script_dir}/*adoc scripts/* configure/* operation/*
   echo "packaging mirror registry..."
   tar -cf mirror-registry.tar $OCP_MIRROR_REGISTRY_DIRECTORY
 

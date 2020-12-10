@@ -12,6 +12,8 @@ function usage
   echo "    create-mirror-image-registry - create mirror image registry"
   echo "    create-external-registry     - create external image registry"  
   echo "    do-mirroring                 - mirror images from Red Hat"
+  echo "    create-mirror-package        - create mirror image package"
+  echo "    upload-mirror-package        - upload mirror images to mirror registry"
   echo "    create-ntp-server            - create NTP server image"
   echo "    create-apache-rhcos-server   - create Apache server image for RHCOS binaries"
   echo "    create-dns-server            - create DNS server image"

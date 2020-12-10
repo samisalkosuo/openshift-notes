@@ -15,10 +15,13 @@ export OCP_INSTALL_USER=ocp
 export OCP_DOMAIN=forum.fi.ibm.com
 export OCP_CLUSTER_NAME=ocp-07
 
+#OCP version to install/upgrade
+export OCP_VERSION=4.6.1
+
 #Find correct RHCOS major release and version from
 #https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/"
 export OCP_RHCOS_MAJOR_RELEASE=4.6
-export OCP_VERSION=4.6.1
+export OCP_RHCOS_VERSION=4.6.1
 
 export OCP_RELEASE="${OCP_VERSION}-x86_64"
 export OCP_LOCAL_REPOSITORY='ocp/openshift4'

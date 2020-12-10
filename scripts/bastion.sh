@@ -73,8 +73,8 @@ if [[ "${__operation}" == "prepare-bastion" ]]; then
   if [[ "$OCP_APACHE_IGNITION_PORT" == "" ]]; then
     usageEnv OCP_APACHE_IGNITION_PORT
   fi
-  if [[ "$OCP_VERSION" == "" ]]; then
-    usageEnv OCP_VERSION
+  if [[ "$OCP_RHCOS_VERSION" == "" ]]; then
+    usageEnv OCP_RHCOS_VERSION
   fi
   
   echo "preparing bastion..."  
