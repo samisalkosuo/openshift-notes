@@ -46,6 +46,37 @@ This assumes that OpenShift was installed using instructions in this repository 
 
 == Add worker node
 
+Adding new worker node is straight-forward process.
+
+* Have new server ready.
+** Create new VM in virtualization environment
+** Setup physical server.
+** And so on.
+* Get the MAC address of the server/network card.
+** For example: `00:50:56:b3:7e:23`.
+* Open link:../config.sh[config.sh]:
+** Find environment variable `OCP_NODE_WORKER_HOSTS`.
+** Add new server to the variable, for example:
+** `worker-03 192.168.47.113 00:50:56:b3:7e:23;`
+** Source new configuration: `source config.sh`
+* Create new DNS and DHCP/PXE images:
+** `sh omg.sh create-dns-server`
+** `sh omg.sh create-dhcp-pxe-server`
+* Restart services:
+** Use systemctl.
+** Or restart all services with one command: `sh omg.sh svc-restart`
+* Power on VM or server.
+** Server installs RHCOS from PXE and adds itself to OpenShift cluster.
+* Two certificates needs to approved before worker node is ready.
+** See certificate requests:
+** `oc get csr`
+** If any request in in 'Pending'-state, approve them:
+** `oc adm certificate approve <csr name>`
+* View node status using command:
+** `oc get nodes`
+* When new worker node shows _Ready_, then it is ready.
+
+
 == Remove worker node
 
 == Dedicate router nodes
