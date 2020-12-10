@@ -6,6 +6,7 @@ This repository includes OpenShift related notes, scripts and so on.
 * link:omg.sh[omg.sh] is the main script to use to install OpenShift.
 * link:install/[install]-directory includes instructions and scripts to install OpenShift.
 * link:configure/[configure]-directory includes instructions and scripts to configure OpenShift.
+* link:operation/[operation]-directory includes instructions and scripts related to operating OpenShift .
 
 Download or clone this repository to local environment.
 

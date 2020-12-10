@@ -75,6 +75,7 @@ export OCP_NODE_MASTER_03="master-03 192.168.47.107 00:50:56:b3:ff:a5"
 export OCP_NODE_WORKER_HOSTS=" \
 worker-01 192.168.47.111 00:50:56:b3:93:4f; \
 worker-02 192.168.47.112 00:50:56:b3:33:f1; \
+worker-03 192.168.47.113 00:50:56:b3:7e:23; \
 "
 
 #hosts that are not OCP worker nodes but need to be in DNS and DHCP
