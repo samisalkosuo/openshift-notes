@@ -68,10 +68,11 @@ export OCP_NODE_MASTER_01="master-01 192.168.47.105 00:50:56:b3:87:0a"
 export OCP_NODE_MASTER_02="master-02 192.168.47.106 00:50:56:b3:a9:f1"
 export OCP_NODE_MASTER_03="master-03 192.168.47.107 00:50:56:b3:ff:a5"
 
-#OCP worker nodes that are served by DNS and DHCP server 
+#OCP worker nodes that are served by DNS and DHCP server
 #hostname, IP and MAC required
 #syntax: "<HOSTNAME> <IP> <MAC>; <HOSTNAME> <IP> <MAC>;"
 #where hostname, ip and mac are separated by space and followed by ;
+#note: if this file is used in HAProxy host, these worker nodes are added to haproxy configuration.
 export OCP_NODE_WORKER_HOSTS=" \
 worker-01 192.168.47.111 00:50:56:b3:93:4f; \
 worker-02 192.168.47.112 00:50:56:b3:33:f1; \
