@@ -76,10 +76,36 @@ Adding new worker node is straight-forward process.
 ** `oc get nodes`
 * When new worker node shows _Ready_, then it is ready.
 
-
 == Remove worker node
 
-== Dedicate router nodes
+Remove worker node from cluster:
+
+* Mark the node as unschedulable:
+** `oc adm cordon <node_name>`
+* Drain all Pods on your node:
+** `oc adm drain <node_name> --force=true`
+** or if it fails, use:
+** `oc adm drain <node_name> --force --ignore-daemonsets --delete-local-data`
+* Delete your node from the cluster:
+** `oc delete node <node_name>`
+* Shutdown node.
+* Remove node IP and MAC address from configuration.
+* Delete or otherwise dispose the node.
+
+== Place router pods
+
+It is possible to place pods in specific nodes using node selectors. Here we place router pods in two specific worker nodes. https://docs.openshift.com/container-platform/4.6/nodes/scheduling/nodes-scheduler-node-selectors.html[Procedure is documented].
+
+* Open shell and use _oc_-command to login cluster admin.
+* Choose two worker nodes to be dedicated for router pods.
+* Add label to those worker nodes:
+** `oc label node <node-name> nodeType=router`
+* Router pods are in _openshift-ingress_project.
+* Patch namespace and add annotation for node selector:
+** `oc patch namespace openshift-ingress -p '{"metadata":{"annotations":{"openshift.io/node-selector":"nodeType=router"}}}'`
+* Delete router pods to reschedule:
+** `oc -n openshift-ingress get pods --no-headers |awk '{print "oc -n openshift-ingress delete pod " $1}' | sh`
+
 
 == Backup etcd
 
