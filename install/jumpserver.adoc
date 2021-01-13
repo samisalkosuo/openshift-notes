@@ -128,14 +128,16 @@ Prereqs install a terminal multiplexer, _tmux_. Useful to create sessions that r
 Basic commands:
 
 * Start new session:
-** `tmux new-session`
+** `tmux new-session` or just `tmux`
 ** `tmux new-session -s ocp`, creates session with name 'ocp'
 * Detach from session:
 ** `tmux detach-client`
 * Attach to existing session:
-** `tmux attach-session`
+** `tmux attach-session` or `tmux a`
 ** `tmux attach-session -t ocp`, attach to named session
-* For a quick guide to tmux, check https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/[A Quick and Easy Guide to tmux]
+* tmux guides:
+** https://tmuxcheatsheet.com/[Tmux cheatsheet]
+** https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/[A Quick and Easy Guide to tmux]
 
 === Certificates
 
