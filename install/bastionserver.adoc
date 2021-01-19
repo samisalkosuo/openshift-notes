@@ -23,7 +23,7 @@ _Airgapped install only._
 * Login to bastion as root.
 * Extract _dist.tar_:
 ** `tar -xf dist.tar`
-* Open link:config.sh[../config.sh] 
+* Open link:../config.sh[../config.sh] 
 ** Set `OCP_OMG_SERVER_ROLE=bastion`
 ** Then `source config.sh`.
 
