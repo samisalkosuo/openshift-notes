@@ -17,7 +17,7 @@ __domain=$OCP_DOMAIN
 __validity_days=3650
 __base_name=registry
 __common_name=${__base_name}.${__domain}
-__alt_names=(mirror-registry ocp-registry external-registry)
+__alt_names=(mirror-registry ocp-registry ocp-registry2 external-registry external-registry2 registry1 registry2 registry3 registry4 registry5)
 __current_dir=$(pwd)
 
 set -e
