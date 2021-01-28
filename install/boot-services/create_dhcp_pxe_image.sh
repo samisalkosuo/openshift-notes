@@ -40,8 +40,11 @@ if [[ "$OCP_DHCP_DNS_SERVER" == "" ]]; then
   usage OCP_DHCP_DNS_SERVER
 fi
 
-if [[ "$OCP_NODE_WORKER_HOSTS" == "" ]]; then
-  usage OCP_NODE_HOSTS
+#if three node cluster, ignore OCP_NODE_WORKER_HOSTS
+if [[ "$OCP_THREE_NODE_CLUSTER" != "yes" ]]; then
+  if [[ "$OCP_NODE_WORKER_HOSTS" == "" ]]; then
+    usage OCP_NODE_WORKER_HOSTS
+  fi
 fi
 
 if [[ "$OCP_OTHER_HOSTS_DHCP" == "" ]]; then
@@ -95,7 +98,10 @@ addHost "$OCP_NODE_BOOTSTRAP"
 addHost "$OCP_NODE_MASTER_01"
 addHost "$OCP_NODE_MASTER_02"
 addHost "$OCP_NODE_MASTER_03"
-addHost "$OCP_NODE_WORKER_HOSTS"
+#if three node cluster, ignore OCP_NODE_WORKER_HOSTS
+if [[ "$OCP_THREE_NODE_CLUSTER" != "yes" ]]; then
+  addHost "$OCP_NODE_WORKER_HOSTS"
+fi
 addHost "$OCP_OTHER_HOSTS_DHCP"
 
 #create tftp config
@@ -112,7 +118,10 @@ addPxeFile "$OCP_NODE_BOOTSTRAP" $OCP_IGNITION_URL_BOOTSTRAP
 addPxeFile "$OCP_NODE_MASTER_01" $OCP_IGNITION_URL_MASTER
 addPxeFile "$OCP_NODE_MASTER_02" $OCP_IGNITION_URL_MASTER
 addPxeFile "$OCP_NODE_MASTER_03" $OCP_IGNITION_URL_MASTER
-addPxeFile "$OCP_NODE_WORKER_HOSTS" $OCP_IGNITION_URL_WORKER
+#if three node cluster, ignore OCP_NODE_WORKER_HOSTS
+if [[ "$OCP_THREE_NODE_CLUSTER" != "yes" ]]; then
+  addPxeFile "$OCP_NODE_WORKER_HOSTS" $OCP_IGNITION_URL_WORKER
+fi 
 addPxeFile "$OCP_OTHER_HOSTS_DHCP" $OCP_IGNITION_URL_WORKER
 
 echo "Building ${__name} image..."

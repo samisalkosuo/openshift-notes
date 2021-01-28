@@ -46,6 +46,13 @@ export OCP_MIRROR_REGISTRY_DIRECTORY=/opt/mirror-registry
 export OCP_MIRROR_REGISTRY_USER_NAME=admin
 export OCP_MIRROR_REGISTRY_USER_PASSWORD=passw0rd
 
+#external registry config
+export OCP_EXTERNAL_REGISTRY_HOST_NAME=external-registry
+export OCP_EXTERNAL_REGISTRY_PORT=5001
+export OCP_EXTERNAL_REGISTRY_DIRECTORY=/opt/external-registry
+export OCP_EXTERNAL_REGISTRY_USER_NAME=admin
+export OCP_EXTERNAL_REGISTRY_USER_PASSWORD=passw0rd
+
 #host and port for Apache servers that hold RHCOS and ignition files
 #typically bastion is the host
 export OCP_APACHE_RHCOS_HOST=192.168.47.100
@@ -54,6 +61,10 @@ export OCP_APACHE_IGNITION_HOST=192.168.47.100
 export OCP_APACHE_IGNITION_PORT=8181
 
 #OCP and other nodes
+
+#set this variable is cluster is only three nodes (that is, 3 masters)
+#use values 'yes' or 'no'
+export OCP_THREE_NODE_CLUSTER=no
 
 #network CIDR for OCP nodes, used in install-config.yaml
 export OCP_NODE_NETWORK_CIDR=192.168.47.0/24
@@ -73,6 +84,7 @@ export OCP_NODE_MASTER_03="master-03 192.168.47.107 00:50:56:b3:ff:a5"
 #syntax: "<HOSTNAME> <IP> <MAC>; <HOSTNAME> <IP> <MAC>;"
 #where hostname, ip and mac are separated by space and followed by ;
 #note: if this file is used in HAProxy host, these worker nodes are added to haproxy configuration.
+#note 2: if OCP_THREE_NODE_CLUSTER is yes, then this variable is ignored
 export OCP_NODE_WORKER_HOSTS=" \
 worker-01 192.168.47.111 00:50:56:b3:93:4f; \
 worker-02 192.168.47.112 00:50:56:b3:33:f1; \
@@ -114,19 +126,11 @@ export OCP_DHCP_NTP_SERVER=192.168.47.100
 export OCP_DHCP_DNS_SERVER=192.168.47.100
 
 #PXE variables, RHCOS files
-export OCP_PXE_RHCOS_KERNEL_URL=http://${OCP_APACHE_RHCOS_HOST}:${OCP_APACHE_RHCOS_PORT}/rhcos-4.6.1-x86_64-live-kernel-x86_64
-export OCP_PXE_RHCOS_INITRAMFS_URL=http://${OCP_APACHE_RHCOS_HOST}:${OCP_APACHE_RHCOS_PORT}/rhcos-4.6.1-x86_64-live-initramfs.x86_64.img
-export OCP_PXE_RHCOS_ROOTFS_URL=http://${OCP_APACHE_RHCOS_HOST}:${OCP_APACHE_RHCOS_PORT}/rhcos-4.6.1-x86_64-live-rootfs.x86_64.img
+export OCP_PXE_RHCOS_KERNEL_URL=http://${OCP_APACHE_RHCOS_HOST}:${OCP_APACHE_RHCOS_PORT}/rhcos-${OCP_RHCOS_VERSION}-x86_64-live-kernel-x86_64
+export OCP_PXE_RHCOS_INITRAMFS_URL=http://${OCP_APACHE_RHCOS_HOST}:${OCP_APACHE_RHCOS_PORT}/rhcos-${OCP_RHCOS_VERSION}-x86_64-live-initramfs.x86_64.img
+export OCP_PXE_RHCOS_ROOTFS_URL=http://${OCP_APACHE_RHCOS_HOST}:${OCP_APACHE_RHCOS_PORT}/rhcos-${OCP_RHCOS_VERSION}-x86_64-live-rootfs.x86_64.img
 
 #Ignition files
 export OCP_IGNITION_URL_BOOTSTRAP=http://${OCP_APACHE_IGNITION_HOST}:${OCP_APACHE_IGNITION_PORT}/bootstrap.ign
 export OCP_IGNITION_URL_MASTER=http://${OCP_APACHE_IGNITION_HOST}:${OCP_APACHE_IGNITION_PORT}/master.ign
 export OCP_IGNITION_URL_WORKER=http://${OCP_APACHE_IGNITION_HOST}:${OCP_APACHE_IGNITION_PORT}/worker.ign
-
-
-#external registry config
-export OCP_EXTERNAL_REGISTRY_HOST_NAME=external-registry
-export OCP_EXTERNAL_REGISTRY_PORT=5001
-export OCP_EXTERNAL_REGISTRY_DIRECTORY=/opt/external-registry
-export OCP_EXTERNAL_REGISTRY_USER_NAME=admin
-export OCP_EXTERNAL_REGISTRY_USER_PASSWORD=passw0rd

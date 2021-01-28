@@ -40,8 +40,11 @@ if [[ "$OCP_NODE_BASTION" == "" ]]; then
   usage OCP_NODE_BASTION
 fi
 
-if [[ "$OCP_NODE_WORKER_HOSTS" == "" ]]; then
-  usage OCP_NODE_WORKER_HOSTS
+#if three node cluster, ignore OCP_NODE_WORKER_HOSTS
+if [[ "$OCP_THREE_NODE_CLUSTER" != "yes" ]]; then
+  if [[ "$OCP_NODE_WORKER_HOSTS" == "" ]]; then
+    usage OCP_NODE_WORKER_HOSTS
+  fi
 fi
 
 if [[ "$OCP_OTHER_HOSTS_DHCP" == "" ]]; then
@@ -88,8 +91,11 @@ echo "${__hostname_bootstrap} IN  A  ${__ip_bootstrap}" >> $__zone_file
 echo "${__hostname_master01}  IN  A  ${__ip_master01}" >> $__zone_file
 echo "${__hostname_master02}  IN  A  ${__ip_master02}" >> $__zone_file
 echo "${__hostname_master03}  IN  A  ${__ip_master03}" >> $__zone_file
-#add records from env variable
-echo $OCP_NODE_WORKER_HOSTS | sed "s/;/\n/g" | awk '$1{print $1 " IN A " $2}' >> $__zone_file
+#add records from env variables
+#if three node cluster, ignore OCP_NODE_WORKER_HOSTS
+if [[ "$OCP_THREE_NODE_CLUSTER" != "yes" ]]; then
+  echo $OCP_NODE_WORKER_HOSTS | sed "s/;/\n/g" | awk '$1{print $1 " IN A " $2}' >> $__zone_file
+fi
 echo $OCP_OTHER_HOSTS_DHCP | sed "s/;/\n/g" | awk '$1{print $1 " IN A " $2}' >> $__zone_file
 echo $OCP_OTHER_DNS_HOSTS | sed "s/;/\n/g" | awk '$1{print $1 " IN A " $2}' >> $__zone_file
 

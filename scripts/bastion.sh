@@ -88,7 +88,8 @@ if [[ "${__operation}" == "prepare-bastion" ]]; then
   fi 
 
   echo "creating ocp-user..."
-  useradd ${OCP_INSTALL_USER}
+  #try to add user, if user exists ignore it and continue
+  useradd ${OCP_INSTALL_USER} || true
   echo "copying install-files to ocp-users install-directory..."
   mkdir -p /home/${OCP_INSTALL_USER}/install
   
@@ -109,9 +110,12 @@ if [[ "${__operation}" == "prepare-bastion" ]]; then
   su - ${OCP_INSTALL_USER} -c "cp install/install-config.yaml ~/install-config.yaml.backup"
   echo "creating manifest files..."
   su - ${OCP_INSTALL_USER} -c "cd install && openshift-install create manifests --dir=./"
-  #when using airgapped user-provisioned infrastructure installation, master nodes are schedulable
-  echo "configuring master nodes unschedulable..."
-  su - ocp -c  "sed -i  \"s/mastersSchedulable: true/mastersSchedulable: false/g\" install/manifests/cluster-scheduler-02-config.yml"
+  if [[ "$OCP_THREE_NODE_CLUSTER" != "yes" ]]; then
+    #when using airgapped user-provisioned infrastructure installation, master nodes are schedulable
+    #make master unschedulable if not using three node cluster
+    echo "configuring master nodes unschedulable..."
+    su - ocp -c  "sed -i  \"s/mastersSchedulable: true/mastersSchedulable: false/g\" install/manifests/cluster-scheduler-02-config.yml"
+  fi 
   echo "creating ignition files..."
   su - ${OCP_INSTALL_USER} -c "cd install && openshift-install create ignition-configs --dir=./"
   echo "creating Apache server for ignition files..."

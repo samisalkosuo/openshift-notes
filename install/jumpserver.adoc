@@ -24,7 +24,7 @@ These same instructions are used in both airgapped and online installations.
 * Open link:config.sh[../config.sh].
 * Set:
 ** `OCP_OMG_SERVER_ROLE=jump`
-* Follow the instructions.
+* Follow these instructions.
 
 ==== Online installation
 
@@ -33,7 +33,17 @@ These same instructions are used in both airgapped and online installations.
 * Open link:config.sh[../config.sh].
 * Set:
 ** `OCP_OMG_SERVER_ROLE=bastion_online`
-* Follow the instructions.
+* Follow these instructions.
+
+=== Three-node cluster
+
+If setting up a three-node cluster, there are no worker nodes.
+
+* Open link:config.sh[../config.sh].
+* Set:
+** `OCP_THREE_NODE_CLUSTER=yes`
+** When this variable is set, _OCP_NODE_WORKER_HOSTS_ variable is ignored.
+* Follow these instructions.
 
 === RHEL subscription
 
@@ -317,7 +327,7 @@ DHCP and PXE environment,that includes DHCP and TFTP server, are generated from 
 
 HAProxy is used as load balancer in OpenShift installation. Only one HAProxy is used in this installation.
 
-* Create DNS server image using:
+* Create HAProxy server image using:
 ** `sh omg.sh create-haproxy-server`
 ** Script link:haproxy/create_haproxy_server.sh[create_haproxy_server.sh] creates haproxy container and systemd service.
 ** Bootstrap server is also added to haproxy.

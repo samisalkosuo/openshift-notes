@@ -25,8 +25,11 @@ if [[ "$OCP_NODE_MASTER_03" == "" ]]; then
   usage OCP_NODE_MASTER_03
 fi
 
-if [[ "$OCP_NODE_WORKER_HOSTS" == "" ]]; then
-  usage OCP_NODE_WORKER_HOSTS
+#if three node cluster, ignore OCP_NODE_WORKER_HOSTS
+if [[ "$OCP_THREE_NODE_CLUSTER" != "yes" ]]; then
+  if [[ "$OCP_NODE_WORKER_HOSTS" == "" ]]; then
+    usage OCP_NODE_WORKER_HOSTS
+  fi
 fi
 
 if [[ "$OCP_SERVICE_NAME_HAPROXY_SERVER" == "" ]]; then
@@ -76,13 +79,29 @@ echo "" >> $__haproxy_cfg
 echo "backend openshift-app-https" >> $__haproxy_cfg
 echo "    balance roundrobin" >> $__haproxy_cfg
 echo "    mode tcp" >> $__haproxy_cfg
-echo  $OCP_NODE_WORKER_HOSTS  | sed "s/;/\n/g" | awk -v file="${__haproxy_cfg}" '$1{print "echo \"server " $1 " " $2 ":443 check\"" " >> " file}' | sh
+#if three node cluster, ignore OCP_NODE_WORKER_HOSTS
+if [[ "$OCP_THREE_NODE_CLUSTER" != "yes" ]]; then
+  echo  $OCP_NODE_WORKER_HOSTS  | sed "s/;/\n/g" | awk -v file="${__haproxy_cfg}" '$1{print "echo \"server " $1 " " $2 ":443 check\"" " >> " file}' | sh
+else
+  #in three-node clusters add masters to server workloads
+  addEntry "$OCP_NODE_MASTER_01" 443
+  addEntry "$OCP_NODE_MASTER_02" 443
+  addEntry "$OCP_NODE_MASTER_03" 443
+fi
 
 echo "" >> $__haproxy_cfg
 echo "backend openshift-app-http" >> $__haproxy_cfg
 echo "    balance roundrobin" >> $__haproxy_cfg
 echo "    mode tcp" >> $__haproxy_cfg
-echo  $OCP_NODE_WORKER_HOSTS  | sed "s/;/\n/g" | awk -v file="${__haproxy_cfg}" '$1{print "echo \"server " $1 " " $2 ":80 check\"" " >> " file}'  | sh
+#if three node cluster, ignore OCP_NODE_WORKER_HOSTS
+if [[ "$OCP_THREE_NODE_CLUSTER" != "yes" ]]; then
+  echo  $OCP_NODE_WORKER_HOSTS  | sed "s/;/\n/g" | awk -v file="${__haproxy_cfg}" '$1{print "echo \"server " $1 " " $2 ":80 check\"" " >> " file}'  | sh
+else
+  #in three-node clusters add masters to server workloads
+  addEntry "$OCP_NODE_MASTER_01" 443
+  addEntry "$OCP_NODE_MASTER_02" 443
+  addEntry "$OCP_NODE_MASTER_03" 443
+fi
 
 echo "Building $__name container..."
 podman build -t $__name .
