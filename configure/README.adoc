@@ -145,6 +145,12 @@ By default, there are no cluster admin users when adding new identity provider.
 * As cluster admin, such as _kubeadmin_, add new cluster admin user:
 ** `oc adm policy add-cluster-role-to-user cluster-admin <user>`
 
+== HTPasswd identity provider
+
+Steps to create HTPasswd identity provider is described here: https://docs.openshift.com/container-platform/4.6/authentication/identity_providers/configuring-htpasswd-identity-provider.html.
+
+* Edit link:htpasswd/htpasswd-util.sh[htpasswd-util.sh] is used to create/list/add/remove users in HTPasswd identity provider.
+* When creating HTPasswd identity provider using the script, it creates 'cladmin'-user with random password and sets the user as cluster admin.
 
 == Certificates
 
