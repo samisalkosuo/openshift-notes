@@ -29,8 +29,6 @@ The architecture of OpenShift in the context of this repository. Just a few comm
 ** In real life, LDAP would be enterprise LDAP somewhere and NFS would be a typical enterprise storage solution.
 ** Or storage could be https://www.openshift.com/products/container-storage/[Red Hat OpenShift Container Storage].
 * Two worker nodes are labeled so that ingress router will run on those nodes.
-* Most of the services (DHCP, DNS, NTP, Apache, etc.) are implemented as containers and executed using podman.
-** This is because containers are easy to distribute and it is easy to dedicate and configure them specifically for OpenShift.
 
 == Install native
 

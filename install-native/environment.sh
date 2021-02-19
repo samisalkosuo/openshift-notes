@@ -3,8 +3,13 @@
 #path to pull-secret.json
 export OCP_PULL_SECRET_FILE=/root/pull-secret.json
 
-#OpenShift install user, created in bastion server
-export OCP_INSTALL_USER=ocp
+#when instructed during installation
+#set this to no when removing bootstrap from haproxy 
+export OCP_NODE_HAPROXY_ADD_BOOTSTRAP=yes
+
+#set this variable is cluster is only three nodes (that is, 3 masters)
+#use values 'yes' or 'no'
+export OCP_THREE_NODE_CLUSTER=yes
 
 #OCP_DOMAIN is your domain where OpenShift is installed
 export OCP_DOMAIN=forum.fi.ibm.com
@@ -21,6 +26,9 @@ export OCP_VERSION=4.6.8
 export OCP_RHCOS_MAJOR_RELEASE=4.6
 export OCP_RHCOS_VERSION=4.6.8
 
+#OpenShift install user, created in bastion server
+export OCP_INSTALL_USER=ocp
+
 export OCP_RELEASE="${OCP_VERSION}-x86_64"
 export OCP_LOCAL_REPOSITORY='ocp/openshift4'
 export OCP_PRODUCT_REPO='openshift-release-dev'
@@ -33,22 +41,12 @@ export OCP_NODE_BASTION_IP_ADDRESS=192.168.47.20
 export OCP_APACHE_HOST=${OCP_NODE_BASTION_IP_ADDRESS}
 export OCP_APACHE_PORT=8080
 
-#OCP and other nodes
-
-#set this variable is cluster is only three nodes (that is, 3 masters)
-#use values 'yes' or 'no'
-export OCP_THREE_NODE_CLUSTER=yes
-
 #network CIDR for OCP nodes, used in install-config.yaml
 export OCP_NODE_NETWORK_CIDR=192.168.47.0/24
 
 #bastion and haproxy hostname and IP (MAC is not required)
 export OCP_NODE_BASTION="bastion ${OCP_NODE_BASTION_IP_ADDRESS}"
 export OCP_NODE_HAPROXY="haproxy ${OCP_NODE_BASTION_IP_ADDRESS}"
-
-#when instructed during installation
-#set this to no when removing bootstrap from haproxy 
-export OCP_NODE_HAPROXY_ADD_BOOTSTRAP=yes
 
 #bootstrap and master nodes, hostname, IP and MAC required
 export OCP_NODE_BOOTSTRAP="bootstrap 192.168.47.21 00:50:56:b3:0c:7b"

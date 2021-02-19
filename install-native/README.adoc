@@ -88,7 +88,7 @@ OpenShift can now be accessed. However, it will not be ready until all cluster o
 ** `oc adm certificate approve <csr name>`
 * View node status using command:
 ** `oc get nodes`
-* When worker node is ready, it takes a few moments to get everything ready.
+* When worker nodes are ready, it takes a few moments to get everything ready.
 ** Use: `oc get clusteroperators` to get status of cluster operators.
 ** All must be available. Example output:
 ```
