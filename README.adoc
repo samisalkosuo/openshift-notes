@@ -2,13 +2,12 @@
 
 This repository includes OpenShift related notes, scripts and so on. 
 
-* link:config.sh[config.sh] includes all environment variables for scripts to install OpenShift.
-* link:omg.sh[omg.sh] is the main script to use to install OpenShift.
-* link:install/[install]-directory includes instructions and scripts to install OpenShift.
+The main purpose of this repository is to provide helpers to install OpenShift in user-provisioned environment in either airgapped or online mode.
+
+* link:install-native/[install-native]-directory includes instructions and scripts to install OpenShift in online environment and installing all services to bastion.
+* link:install/[install]-directory includes instructions and scripts to install OpenShift in airgapped or online environment using containerized services.
 * link:configure/[configure]-directory includes instructions and scripts to configure OpenShift.
 * link:operation/[operation]-directory includes instructions and scripts related to operating OpenShift .
-
-Download or clone this repository to local environment.
 
 == Architecture
 
@@ -33,7 +32,18 @@ The architecture of OpenShift in the context of this repository. Just a few comm
 * Most of the services (DHCP, DNS, NTP, Apache, etc.) are implemented as containers and executed using podman.
 ** This is because containers are easy to distribute and it is easy to dedicate and configure them specifically for OpenShift.
 
-link:install/[install]-directory includes instructions and scripts to install OpenShift.
+== Install native
+
+link:install/[install-native]-directory includes instructions and scripts to install OpenShift in online environment using native services for Apache, registry, DNS, DHCP etc.
+
+All OpenShift services including HAProxy are installed on bastion-server.
+
+== Install
+
+link:install/[install]-directory includes instructions and scripts to install OpenShift in airgapped or online environment using containerized services for Apache, registry, DNS, DHCP etc.
+
+** link:config.sh[config.sh] includes all environment variables for scripts to install OpenShift when using containerized services.
+** link:omg.sh[omg.sh] is the main script to use to install OpenShift when using containerized services.
 
 Airgapped installation is based on https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-network-user-infra_installing-restricted-networks-bare-metal[OpenShift installation in restricted network bare metal installation].
 
