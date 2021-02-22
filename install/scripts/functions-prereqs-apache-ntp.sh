@@ -4,7 +4,7 @@ function installPrereqs
     echo "Installing prereq packages..."
     echo "enabling Extra Packages for Enterprise Linux..."
     yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-    __packages="podman jq nmap ntpstat bash-completion httpd-tools curl wget tmux net-tools nfs-utils python3 git openldap openldap-clients openldap-devel yum-utils createrepo libmodulemd modulemd-tools httpd bind dnsmasq dhcp-server haproxy syslinux"
+    __packages="podman jq nmap ntpstat bash-completion httpd-tools curl wget tmux net-tools nfs-utils python3 git openldap openldap-clients openldap-devel yum-utils createrepo libmodulemd modulemd-tools chrony httpd bind dnsmasq dhcp-server haproxy syslinux"
     dnf -y install --enablerepo=epel-testing $__packages
     echo "Installing prereq packages...done."
 

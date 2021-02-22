@@ -1,3 +1,0 @@
-# Scripts
-
-Scripts to be included in omg.sh.

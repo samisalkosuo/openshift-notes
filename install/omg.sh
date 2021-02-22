@@ -69,3 +69,5 @@ case "$1" in
         usage
         ;;
 esac
+
+#FYI, script name "omg" comes from "(O)penshift install (M)ana(G)er tool" :-) 

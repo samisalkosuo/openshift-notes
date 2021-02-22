@@ -1,119 +1,146 @@
-= OpenShift installation
-:toc: left
-:toc-title: Table of Contents
+= Online and native install
 
-This document describes how to install OpenShift 4.6 on airgapped or online environment. A few scripts are provided in this repository to make the installation relatively easy.
+Scripts to install OpenShift in online environment using native services for NTP, Apache, DHCP & PXE, DNS and HAProxy.
 
-== Servers
+* NTP, Apache, DNS, DHCP & PXE and HAProxy are all installed on bastion-server.
+* link:environment.sh[environment.sh] includes environment variables related to online-native install.
+* link:omg.sh[omg.sh] is the main script to use to install OpenShift.
 
-The following servers are needed to install OpenShift:
+== Installation
 
-* All servers should use the same Linux distribution and version.
-** Red Hat Enterprise Linux 8.2 is used in this document.
-* Jump server:
-** access to Internet.
-** used to mirror images, download software, etc.
-** may or may not have access to bastion server.
-** This is same as bastion in online-installation.
-* Bastion server:
-** this server is in the network with no access to Internet.
-** has access to OpenShift network.
-** includes supporting services like mirror registry, other registries, DHCP, DNS, etc.
-** Separate bastion is not needed in online-installation.
-* Load balancer server:
-** HAProxy as access point to OpenShift.
-** public IP address and access to OpenShift network.
+Assumptions:
 
-In addition to RHEL, Red Hat CoreOS is used in all OpenShift nodes. CoreOS servers are installed during installation process using PXE, https://en.wikipedia.org/wiki/Preboot_Execution_Environment[Preboot eXecution Environment].
+* Bastion is fresh RHEL 8.3 installation.
+* Bastion has two network interfaces, "external" and "internal"
+** "internal" network is the one where OpenShift nodes are installed.
+* OpenShift nodes are available. 
+** For example: virtual machines have been created (no OS installed).
 
-Be aware that access to the environment is required. For example, if using virtualization like VMWare, sufficient access rights is required to create empty virtual machines for OpenShift. 
+Installation steps:
 
-== Airgapped or online?
+* Copy/clone/otherwise transfer _install-native_-directory to bastion server.
+* Download _pull-secret.json_ from Red Hat.
+* Open link:environment.sh[environment.sh] and set variables to match your environment.
+** Check desired OpenShift version from https://mirror.openshift.com/pub/openshift-v4/clients/ocp/.
+** Check desired RHCOS version from https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/.
+* Source variables:
+** ´source environment.sh`
+* See available commands in link:omg.sh[omg.sh]:
+** `sh omg.sh`
+* Setup everything by using commands below. All at once or one at a time.
+```
+sh omg.sh install-prereqs
+sh omg.sh setup-ntp
+sh omg.sh setup-apache
+sh omg.sh setup-dns
+sh omg.sh setup-dhcp
+sh omg.sh setup-haproxy
+sh omg.sh firewall-open
+sh omg.sh download-clients
+sh omg.sh setup-openshift-install
 
-These same instructions are used in both airgapped and online installations.
+```
+* Login as ocp-user to bastion-server and go to _install_-directory.
+* Boot bootstrap-node and wait until it is ready.
+** Verify access using ocp-user and `ssh core@bootstrap`.
+* Boot master-nodes.
+** Verify that you can access them.
+* When all master nodes are up and running, execute:
+** `openshift-install --dir=./ wait-for bootstrap-complete --log-level debug`
+** Wait for results...
+** After a while you should see output like:
+```
+    DEBUG OpenShift Installer 4.6.8
+    DEBUG Built from commit f5ba6239853f0904704c04d8b1c04c78172f1141
+    INFO Waiting up to 20m0s for the Kubernetes API at https://api.cluster2.forum.fi.ibm.com:6443...
+    INFO API v1.19.0+7070803 up
+    INFO Waiting up to 30m0s for bootstrapping to complete...
+    DEBUG Bootstrap status: complete
+    INFO It is now safe to remove the bootstrap resources
+    DEBUG Time elapsed per stage:
+    DEBUG Bootstrap Complete: 18m53s
+    INFO Time elapsed: 18m53s
+```
+* Note the last lines, it should indicate success.
+* As instructed, remove bootstrap-node:
+** Login as root.
+** Open link:environment.sh[environment.sh] and set `OCP_NODE_HAPROXY_ADD_BOOTSTRAP=no`.
+** Source variables:
+** ´source environment.sh`
+** Execute:
+** `sh omg.sh setup-haproxy`
 
-Online installation specifics:
+OpenShift can now be accessed. However, it will not be ready until all cluster operators are ready.
 
-* Jump server == bastion server, since it has internet access and can install OpenShift.
-** When doing online installation jump and bastion are used interchangeably.
-* Open link:config.sh[../config.sh].
-* Set:
-** `OCP_OMG_SERVER_ROLE=bastion_online`
-* Follow these instructions.
+* As _ocp_-user, export kubeadmin-credentials:
+** `export KUBECONFIG=/home/ocp/install/auth/kubeconfig`
+* Verify that you can access OpenShift:
+** `oc whoami`
+** `oc get nodes`
+* Add at least two worker nodes to complete installation.
+** Make sure that worker node information is in _environment.sh_ and that DNS and DHCP services include that information.
+** Start the node, it should get IP address from DHCP and register itself as worker.
+* When adding worker nodes, certificate requests need to be approved before node becomes part of the cluster:
+** Two CSRs per worker node must be approved.
+** See certificate requests:
+** `oc get csr`
+** If any request in in 'Pending'-state, approve them:
+** `oc adm certificate approve <csr name>`
+* View node status using command:
+** `oc get nodes`
+* When worker nodes are ready, it takes a few moments to get everything ready.
+** Use: `oc get clusteroperators` to get status of cluster operators.
+** All must be available. Example output:
+```
+    NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
+    authentication                             4.6.8     True        False         False      19s
+    cloud-credential                           4.6.8     True        False         False      43m
+    cluster-autoscaler                         4.6.8     True        False         False      30m
+    config-operator                            4.6.8     True        False         False      32m
+    console                                    4.6.8     True        False         False      6m4s
+    csi-snapshot-controller                    4.6.8     True        False         False      32m
+    dns                                        4.6.8     True        False         False      29m
+    etcd                                       4.6.8     True        False         False      21m
+    image-registry                             4.6.8     True        False         False      11m
+    ingress                                    4.6.8     True        False         False      11m
+    insights                                   4.6.8     True        False         False      32m
+    kube-apiserver                             4.6.8     True        False         False      13m
+    kube-controller-manager                    4.6.8     True        False         False      29m
+    kube-scheduler                             4.6.8     True        False         False      28m
+    kube-storage-version-migrator              4.6.8     True        False         False      30m
+    machine-api                                4.6.8     True        False         False      29m
+    machine-approver                           4.6.8     True        False         False      30m
+    machine-config                             4.6.8     True        False         False      29m
+    marketplace                                4.6.8     True        False         False      30m
+    monitoring                                 4.6.8     True        False         False      6m24s
+    network                                    4.6.8     True        False         False      33m
+    node-tuning                                4.6.8     True        False         False      32m
+    openshift-apiserver                        4.6.8     True        False         False      12m
+    openshift-controller-manager               4.6.8     True        False         False      30m
+    openshift-samples                          4.6.8     True        False         False      12m
+    operator-lifecycle-manager                 4.6.8     True        False         False      29m
+    operator-lifecycle-manager-catalog         4.6.8     True        False         False      29m
+    operator-lifecycle-manager-packageserver   4.6.8     True        False         False      18m
+    service-ca                                 4.6.8     True        False         False      32m
+    storage                                    4.6.8     True        False         False      32m
+```
 
-Airgapped installation:
+We can complete the installation.
 
-* Open link:config.sh[../config.sh].
-* Set:
-** `OCP_OMG_SERVER_ROLE=jump`
-* Follow these instructions.
+* As _ocp_-user, go to _install_-directory and execute:
+** `openshift-install --dir=./ wait-for install-complete`
+* Output is similar to:
+```
+    INFO Waiting up to 40m0s for the cluster at https://api.cluster2.forum.fi.ibm.com:6443 to initialize...
+    INFO Waiting up to 10m0s for the openshift-console route to be created...
+    INFO Install complete!
+    INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/ocp/install/auth/kubeconfig'
+    INFO Access the OpenShift web-console here: https://console-openshift-console.apps.cluster2.forum.fi.ibm.com
+    INFO Login to the console with user: "kubeadmin", and password: "mZDAZ-dYaCR-xreLR-qsC4U"
+    INFO Time elapsed: 1m41s
+```
+* Note the web-console URL and _kubeadmin_ password.
 
+OpenShift is now installed.
 
-== Installation overview
-
-High level steps of the installation:
-
-* _Airgapped install only_:
-** Download prereq software and mirror OpenShift images to mirror registry.
-** Transfer mirror registry and other software to bastion-server.
-* Configure HAProxy, DNS, DHCP, PXE and other supporting services.
-* Install OpenShift.
-
-After OpenShift is installed, there are a few configuration items, including:
-
-* Add image registry storage.
-* Add valid certificate.
-* Update cluster when new version is available.
-
-== Prerequisites
-
-Before preparing for installation in jump server, make note of the prereqs:
-
-* This repository must be present in jump server.
-* Domain name for OpenShift:
-** For example: `forum.fi.ibm.com`
-* Cluster name for OpenShift:
-** For example: `ocp-07`
-* See link:config.sh[../config.sh].
-
-Later, before starting to install OpenShift, prereqs include:
-
-* OpenShift node IP addresses, network, MAC addresses and other configuration information.
-* See link:config.sh[../config.sh].
-
-== Prepare servers
-
-Prepare servers as needed: jump server, bastion and load balancer.
-
-All servers should be the same Linux distribution and version. These instructions are written for Red Hat Enterprise Linux 8.2.
-
-* Jump server has Internet access.
-** It may have access to internal network.
-** Has access to yum-repositories (in case of RHEL, Red Hat subscription is enabled).
-* Bastion server has only internal network access.
-* Load balancer has access to internal network access and also to public/internal network that is accessible by users.
-
-Installation of these servers is out of scope. This document assumes that the three servers are fresh installs.
-
-// GitHub does not support include, so must create ifdefs
-// Add headers and links to other docs
-ifdef::env-github[]
-== Jump server
-
-link:jumpserver.adoc[Start installation by preparing jump server].
-
-== Bastion server
-
-link:bastionserver.adoc[Install OpenShift in bastion server].
-
-endif::env-github[]
-
-// when not in GitHub
-// include other docs
-ifndef::env-github[]
-
-include::jumpserver.adoc[]
-include::bastionserver.adoc[]
-
-endif::env-github[]
 

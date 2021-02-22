@@ -6,6 +6,8 @@ This document describes how to do various operational tasks in OpenShift.
 
 == Upgrade airgapped OpenShift
 
+TODO: upgrade this section.
+
 Upgrading airgapped OpenShift requires mirroring of updated images from Internet and then moving them to mirror registry in airgapped environment.
 
 https://docs.openshift.com/container-platform/4.6/updating/updating-restricted-network-cluster.html[Upgrade in airgapped environment is documented].

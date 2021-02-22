@@ -1,7 +1,0 @@
-DEFAULT pxeboot
-TIMEOUT 20
-PROMPT 0
-LABEL pxeboot
-    KERNEL %KERNEL_URL%
-    APPEND initrd=%INITRAMFS_URL% coreos.live.rootfs_url=%ROOTFS_URL% coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=>%IGNITION_URL%  
-    
