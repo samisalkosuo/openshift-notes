@@ -2,7 +2,7 @@
 :toc: left
 :toc-title: Table of Contents
 
-This directory includes scripts to install OpenShift on user-provisioned infrastructure in online environment or airgapped environment. Supporting services using native services for NTP, Apache, DHCP & PXE, DNS and HAProxy.
+This directory includes scripts to install OpenShift on user-provisioned infrastructure in online environment or airgapped environment.
 
 * Supporting services NTP, Apache, DNS, DHCP & PXE and HAProxu are installed on bastion-server.
 ** Services can be installed on other servers as well.
@@ -25,7 +25,7 @@ This directory includes scripts to install OpenShift on user-provisioned infrast
 * Jump-server with access to Internet is fresh RHEL installation (for example, 8.2).
 * Bastion is fresh RHEL installation (for example, 8.2).
 * HAProxy is used as load balancer and it is fresh RHEL installation (for example, 8.2).
-* RHEL must be the same version in both jump- and bastion-server.
+* RHEL must be the same version in both jump-, bastion- and haproxy-servers.
 * Bastion is located in the same network as OpenShift nodes.
 * HAProxy-server has two network interfaces, "external" and "internal".
 ** "external" network is the one that users use to access OpenShift.
