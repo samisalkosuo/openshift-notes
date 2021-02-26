@@ -1,24 +1,45 @@
-= Online and native install
+= OpenShift installation on user-provisioned infrastructure
+:toc: left
+:toc-title: Table of Contents
 
-Scripts to install OpenShift in online environment using native services for NTP, Apache, DHCP & PXE, DNS and HAProxy.
+This directory includes scripts to install OpenShift on user-provisioned infrastructure in online environment or airgapped environment. Supporting services using native services for NTP, Apache, DHCP & PXE, DNS and HAProxy.
 
-* NTP, Apache, DNS, DHCP & PXE and HAProxy are all installed on bastion-server.
-* link:environment.sh[environment.sh] includes environment variables related to online-native install.
+* Supporting services NTP, Apache, DNS, DHCP & PXE and HAProxu are installed on bastion-server.
+** Services can be installed on other servers as well.
+* link:environment.sh[environment.sh] includes environment variables related to installation.
 * link:omg.sh[omg.sh] is the main script to use to install OpenShift.
 
-== Installation
+== Assumptions
 
-Assumptions:
+=== Online environment
 
-* Bastion is fresh RHEL 8.3 installation.
-* Bastion has two network interfaces, "external" and "internal"
+* Bastion is fresh RHEL installation (for example, 8.2).
+* Bastion has two network interfaces, "external" and "internal".
+** "external" network is the one that users use to access OpenShift.
 ** "internal" network is the one where OpenShift nodes are installed.
 * OpenShift nodes are available. 
 ** For example: virtual machines have been created (no OS installed).
 
-Installation steps:
+=== Airgapped environment
 
-* Copy/clone/otherwise transfer _install-native_-directory to bastion server.
+* Jump-server with access to Internet is fresh RHEL installation (for example, 8.2).
+* Bastion is fresh RHEL installation (for example, 8.2).
+* HAProxy is used as load balancer and it is fresh RHEL installation (for example, 8.2).
+* RHEL must be the same version in both jump- and bastion-server.
+* Bastion is located in the same network as OpenShift nodes.
+* HAProxy-server has two network interfaces, "external" and "internal".
+** "external" network is the one that users use to access OpenShift.
+** "internal" network is the one where OpenShift nodes are installed.
+* OpenShift nodes are available. 
+** For example: virtual machines have been created (no OS installed).
+
+*IMPORTANT*: jump-server,bastion-server and haproxy-server must be identical installations. For example, all have been installed from the same ISO-image. This is because prereq packages (such as Apache and DNS) are packaged in jump-server as a local repository which is then transferred to bastion-server. Repository does not include packages already available in jump-server, so the same packages must be available also in bastion-server and haproxy-server.
+
+== Prepare for installation
+
+=== Online environment
+
+* Copy/clone/otherwise transfer this directory to bastion-server.
 * Download _pull-secret.json_ from Red Hat.
 * Open link:environment.sh[environment.sh] and set variables to match your environment.
 ** Check desired OpenShift version from https://mirror.openshift.com/pub/openshift-v4/clients/ocp/.
@@ -27,19 +48,85 @@ Installation steps:
 ** ´source environment.sh`
 * See available commands in link:omg.sh[omg.sh]:
 ** `sh omg.sh`
-* Setup everything by using commands below. All at once or one at a time.
+* Setup bastion-server by using commands below. All at once or one at a time.
 ```
 sh omg.sh install-prereqs
+sh omg.sh download-clients
 sh omg.sh setup-ntp
 sh omg.sh setup-apache
 sh omg.sh setup-dns
 sh omg.sh setup-dhcp
 sh omg.sh setup-haproxy
 sh omg.sh firewall-open
-sh omg.sh download-clients
-sh omg.sh setup-openshift-install
-
 ```
+* Online-installation installs HAProxy to bastion-server. HAProxy can be installed on separate server by copying this directory to HAProxy-server and setting HAProxy there.
+
+=== Airgapped environment
+
+* Copy/clone/otherwise transfer this directory to jump-server.
+* Download _pull-secret.json_ from Red Hat.
+* Open link:environment.sh[environment.sh] and set variables to match your environment.
+** Check desired OpenShift version from https://mirror.openshift.com/pub/openshift-v4/clients/ocp/.
+** Check desired RHCOS version from https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/.
+* Source variables:
+** ´source environment.sh`
+* See available commands in link:omg.sh[omg.sh]:
+** `sh omg.sh`
+* Setup jump-server by using commands below. All at once or one at a time.
+```
+sh omg.sh install-prereqs
+sh omg.sh download-clients
+sh omg.sh create-certs
+sh omg.sh create-mirror-registry
+sh omg.sh do-mirroring
+sh omg.sh create-dist-package
+```
+* The last commands creates following files:
+** _dist.tar_
+** _rhcos.tar_
+** _mirror-registry.tar_
+* Transfer the files to bastion-server to _/root_-directory.
+* Login to bastion-server as root.
+* Extract tar-packages using following commands:
+```
+tar -xf dist.tar
+tar -P -xf rhcos.tar
+tar -P -xf mirror-registry.tar
+```
+* Change to _dist_-directory.
+* Open link:environment.sh[environment.sh] and set variables to match your environment.
+** Set bastion, node IP addresses, DHCP settings etc.
+* Prepare airgapped-bastion:
+** `sh omg.sh prepare-bastion`
+** This configures local repository and installs prereqs.
+* Setup bastion-server by using commands below. All at once or one at a time.
+```
+sh omg.sh setup-ntp
+sh omg.sh setup-apache
+sh omg.sh setup-dns
+sh omg.sh setup-dhcp
+sh omg.sh firewall-open
+```
+* Create distribution package for haproxy-server:
+** `sh omg.sh create-haproxy-dist-pkg`
+* The command creates following files:
+** _dist_haproxy.tar_
+* Transfer the file to haproxy-server to _/root_-directory.
+* Extract the file:
+** `tar -xf dist_haproxy.tar`
+* Source variables:
+** ´source environment.sh`
+* Execute commands:
+```
+sh omg.sh setup-haproxy
+sh omg.sh firewall-open
+```
+
+== OpenShift installation
+
+* Login to bastion-server.
+* As root-user, execute:
+** `sh omg.sh setup-openshift-install`
 * Login as ocp-user to bastion-server and go to _install_-directory.
 * Boot bootstrap-node and wait until it is ready.
 ** Verify access using ocp-user and `ssh core@bootstrap`.
@@ -63,7 +150,7 @@ sh omg.sh setup-openshift-install
 ```
 * Note the last lines, it should indicate success.
 * As instructed, remove bootstrap-node:
-** Login as root.
+** Login as root to haproxy-server.
 ** Open link:environment.sh[environment.sh] and set `OCP_NODE_HAPROXY_ADD_BOOTSTRAP=no`.
 ** Source variables:
 ** ´source environment.sh`
@@ -86,6 +173,8 @@ OpenShift can now be accessed. However, it will not be ready until all cluster o
 ** `oc get csr`
 ** If any request in in 'Pending'-state, approve them:
 ** `oc adm certificate approve <csr name>`
+** Approve all pending certificate requests using command:
+*** `oc get csr |grep Pending |awk '{print "oc adm certificate approve " $1}' |sh`
 * View node status using command:
 ** `oc get nodes`
 * When worker nodes are ready, it takes a few moments to get everything ready.

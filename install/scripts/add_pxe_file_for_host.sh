@@ -1,4 +1,4 @@
-#called from functions-support.sh
+#called from functions-dhcp-pxe.sh
 
 __ignition_url=$1
 

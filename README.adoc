@@ -2,9 +2,9 @@
 
 This repository includes OpenShift related notes, scripts and so on. 
 
-The main purpose of this repository is to provide helpers to install OpenShift in user-provisioned environment in either airgapped or online mode.
+The main purpose of this repository is to provide helpers to install OpenShift in user-provisioned environment in either airgapped or online environment.
 
-* link:install/[install]-directory includes instructions and scripts to install OpenShift in online environment and installing all services to bastion.
+* link:install/[install]-directory includes instructions and scripts to install OpenShift in online or airgapped environment.
 * link:configure/[configure]-directory includes instructions and scripts to configure OpenShift.
 * link:operation/[operation]-directory includes instructions and scripts related to operating OpenShift .
 
@@ -31,7 +31,4 @@ The architecture of OpenShift in the context of this repository. Just a few comm
 
 == Install
 
-link:install/[install]-directory includes instructions and scripts to install OpenShift in online environment using native services for Apache, registry, DNS, DHCP etc.
-
-All OpenShift services including HAProxy are installed on bastion-server.
-
+link:install/[install]-directory includes instructions and scripts to install OpenShift in online or airgapped environment using native services for Apache, registry, DNS, DHCP etc.

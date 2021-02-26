@@ -1,23 +1,29 @@
 
+__haproxy_cfg=${__omg_runtime_dir}/haproxy.cfg
+
 
 function configureHAProxy
 {
-
   echo "Configuring HAProxy..."
 
-  #backup existing config file if not copied
-  if [ ! -f /etc/haproxy/haproxy.cfg.original ]; then
-    cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.original
-
+  #if local_repository directory is present => assume standalone haproxy server without Red Hat repository
+  #install haproxy from local repository
+  if [ -d local_repository ]; then
+    echo "local_repository directory exists, creating local repository and installing haproxy..."
+    createLocalRepository
+    dnf -y install haproxy
   fi
 
-  local __haproxy_cfg=haproxy.cfg
+  #backup existing config file, if not already copied
+  if [ ! -f /etc/haproxy/haproxy.cfg.original ]; then
+    cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.original
+  fi
+
   cp templates/haproxy.cfg.template ${__haproxy_cfg}
   echo "" >> $__haproxy_cfg
   echo "backend master-api-be" >> $__haproxy_cfg
   echo "    balance roundrobin" >> $__haproxy_cfg
   echo "    mode tcp" >> $__haproxy_cfg
-
 
   if [[ "$OCP_NODE_HAPROXY_ADD_BOOTSTRAP" == "yes" ]]; then
     addEntry "$OCP_NODE_BOOTSTRAP" 6443
@@ -78,3 +84,10 @@ function configureHAProxy
   echo "Configuring HAProxy...done."
 
 }
+
+function addEntry
+{
+  local __port=$2
+  echo $1 | awk -v port="${__port}" -v file="${__haproxy_cfg}" '$1{print "echo \"server " $1 " " $2 ":" port " check\" >> " file}' | sh
+}
+

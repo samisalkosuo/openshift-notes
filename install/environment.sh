@@ -7,14 +7,6 @@ export OCP_PULL_SECRET_FILE=/root/pull-secret.json
 #set this to no when removing bootstrap from haproxy 
 export OCP_NODE_HAPROXY_ADD_BOOTSTRAP=yes
 
-#set this variable is cluster is only three nodes (that is, 3 masters)
-#use values 'yes' or 'no'
-export OCP_THREE_NODE_CLUSTER=yes
-
-#OCP_DOMAIN is your domain where OpenShift is installed
-export OCP_DOMAIN=forum.fi.ibm.com
-export OCP_CLUSTER_NAME=cluster2
-
 #OCP version to install/upgrade
 #check https://mirror.openshift.com/pub/openshift-v4/clients/ocp/
 #for desired version 
@@ -25,6 +17,14 @@ export OCP_VERSION=4.6.8
 #match RHCOS with chosen OCP
 export OCP_RHCOS_MAJOR_RELEASE=4.6
 export OCP_RHCOS_VERSION=4.6.8
+
+#set this variable is cluster is only three nodes (that is, 3 masters)
+#use values 'yes' or 'no'
+export OCP_THREE_NODE_CLUSTER=yes
+
+#OCP_DOMAIN is your domain where OpenShift is installed
+export OCP_DOMAIN=forum.fi.ibm.com
+export OCP_CLUSTER_NAME=cluster2
 
 #OpenShift install user, created in bastion server
 export OCP_INSTALL_USER=ocp

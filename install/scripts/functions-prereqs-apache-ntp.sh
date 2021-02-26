@@ -4,10 +4,10 @@ function installPrereqs
     echo "Installing prereq packages..."
     echo "enabling Extra Packages for Enterprise Linux..."
     yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-    __packages="podman jq nmap ntpstat bash-completion httpd-tools curl wget tmux net-tools nfs-utils python3 git openldap openldap-clients openldap-devel yum-utils createrepo libmodulemd modulemd-tools chrony httpd bind dnsmasq dhcp-server haproxy syslinux"
-    dnf -y install --enablerepo=epel-testing $__packages
+    dnf -y install --enablerepo=epel-testing $__prereq_packages
+    #install tools to create local repository in jump/online server
+    dnf -y install --enablerepo=epel-testing $__prereq_packages_jump
     echo "Installing prereq packages...done."
-
 }
 
 function configureApache
@@ -33,7 +33,6 @@ function configureApache
     systemctl enable httpd
     systemctl restart httpd
     echo "Configuring Apache...done."
-
 }
 
 

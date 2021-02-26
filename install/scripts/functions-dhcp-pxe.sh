@@ -1,7 +1,23 @@
+
+__dhcpd_conf=${__omg_runtime_dir}/dhcpd.conf
+
+function addHostToDHCPConf
+{
+  echo  $1  | sed "s/;/\n/g" | awk -v file="${__dhcpd_conf}" '$1{print "sh scripts/add_host_entry_to_dhcp_conf.sh " $1 " " $2 " " $3 " " file}' |sh
+}
+
+function addPxeFile
+{
+  local ign_url=$2
+  local __pxefiles_dir=${__omg_runtime_dir}/dhcpd_pxe/pxelinux.cfg
+
+  echo $1 | sed "s/;/\n/g" | awk -v ignurl="$ign_url" -v dir="${__pxefiles_dir}" '$1{print "sh scripts/add_pxe_file_for_host.sh " ignurl " "  $3 " " dir}' |sh 
+
+}
+
 function configureDHCPandPXE
 {
     echo "Configuring DHCP and PXE..."
-    local __dhcpd_conf=dhcpd.conf
     cp templates/dhcpd.conf.template ${__dhcpd_conf}
     sed -i s!%OCP_DOMAIN%!${OCP_DOMAIN}!g ${__dhcpd_conf}
     sed -i s!%OCP_DHCP_NETWORK%!${OCP_DHCP_NETWORK}!g ${__dhcpd_conf}
@@ -26,7 +42,7 @@ function configureDHCPandPXE
     #create tftp config
     #create PXE files that include PXE info
     #PXE file dir: dhcpd_pxe/pxelinux
-    mkdir -p dhcpd_pxe/pxelinux.cfg
+    mkdir -p ${__omg_runtime_dir}/dhcpd_pxe/pxelinux.cfg
     addPxeFile "$OCP_NODE_BOOTSTRAP" $OCP_IGNITION_URL_BOOTSTRAP
     addPxeFile "$OCP_NODE_MASTER_01" $OCP_IGNITION_URL_MASTER
     addPxeFile "$OCP_NODE_MASTER_02" $OCP_IGNITION_URL_MASTER
@@ -53,7 +69,7 @@ function configureDHCPandPXE
     #remove existing pxe files
     rm -rf /usr/share/syslinux/pxelinux.cfg
     #copy pxe files
-    mv dhcpd_pxe/pxelinux.cfg /usr/share/syslinux
+    mv ${__omg_runtime_dir}/dhcpd_pxe/pxelinux.cfg /usr/share/syslinux
     echo "Configuring SELinux..."
     set +e
     semodule -l |grep my-dnsmasq > /dev/null
@@ -65,7 +81,7 @@ function configureDHCPandPXE
         semanage fcontext -a -t public_content_t "/usr/share/syslinux/pxelinux.cfg" || true
         semanage fcontext -a -t public_content_t "/usr/share/syslinux/pxelinux.cfg(/.*)?" || true
         restorecon -R -v /usr/share/syslinux/pxelinux.cfg 
-        cat > my-dnsmasq.te << EOF
+        cat > ${__omg_runtime_dir}/my-dnsmasq.te << EOF
 module my-dnsmasq 1.0;
 
 require {
@@ -89,9 +105,9 @@ allow dnsmasq_t public_content_t:file getattr;
 allow dnsmasq_t public_content_t:file { open read };
 EOF
 
-        checkmodule -M -m -o my-dnsmasq.mod my-dnsmasq.te
-        semodule_package -o my-dnsmasq.pp -m my-dnsmasq.mod
-        semodule -i my-dnsmasq.pp 
+        checkmodule -M -m -o ${__omg_runtime_dir}/my-dnsmasq.mod ${__omg_runtime_dir}/my-dnsmasq.te
+        semodule_package -o ${__omg_runtime_dir}/my-dnsmasq.pp -m ${__omg_runtime_dir}/my-dnsmasq.mod
+        semodule -i ${__omg_runtime_dir}/my-dnsmasq.pp 
     fi
 
     echo "Starting and enabling TFTP server..."

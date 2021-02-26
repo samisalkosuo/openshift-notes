@@ -14,7 +14,7 @@ function createZoneFile
     __hostname_master03=$(echo  $OCP_NODE_MASTER_03 | awk '{print $1}')
     __ip_master03=$(echo  $OCP_NODE_MASTER_03 | awk '{print $2}')
 
-    __zone_file=${OCP_DOMAIN}.zone
+    __zone_file=${__omg_runtime_dir}/${OCP_DOMAIN}.zone
 
     echo "\$ORIGIN ${OCP_DOMAIN}." >> $__zone_file
     echo "\$TTL    14400" > $__zone_file
@@ -59,7 +59,7 @@ function configureDNS
 
     #modify named.conf
     echo "Creating named.conf..."
-    local __named_conf=named.conf
+    local __named_conf=$__omg_runtime_dir/named.conf
     cp templates/named.conf.template ${__named_conf}
 
     sed -i s!%DNSSERVERS%!${OCP_DNS_FORWARDERS}!g ${__named_conf}
@@ -72,8 +72,8 @@ function configureDNS
     echo "Creating zone file..."
     createZoneFile
     echo "Copying DNS config files..."
-    cp named.conf /etc/named.conf
-    cp *zone /var/named
+    cp ${__named_conf} /etc/named.conf
+    cp $__omg_runtime_dir/*zone /var/named
     #change ownership
     chown named:named /var/named/*.zone
 

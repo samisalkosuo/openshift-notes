@@ -1,4 +1,4 @@
-#called from functions-support.sh
+#called from functions-dhcp-pxe.sh
 
 echo "host $1  {" >> $4
 echo "  hardware ethernet $3;" >> $4
