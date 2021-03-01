@@ -15,3 +15,4 @@
 . scripts/functions-package.sh
 . scripts/functions-airgap-bastion.sh
 . scripts/functions-setup-openshift-install.sh
+. scripts/functions-airgap-update.sh

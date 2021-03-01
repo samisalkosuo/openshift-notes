@@ -30,10 +30,12 @@ function usage
   echo "  create-mirror-registry  - Create mirror registry."
   echo "  do-mirroring            - Mirror OpenShift images to mirror-registry."
   echo "  create-dist-package     - Create dist-package to be transferred to airgapped bastion."
+  echo "  create-update-package   - Create OpenShift update package to be transferred to airgapped bastion."
   echo ""
   echo "command (bastion, airgapped):"
   echo "  prepare-bastion         - Prepare bastion for OpenShift installation."
   echo "  create-haproxy-dist-pkg - Create dist-package to be transferred to haproxy-server."
+  echo "  upload-update-images    - Upload OpenShift update images to mirror registry."
   echo ""
   echo "command (all):"
   echo "  firewall-open           - Open firewall ports."
@@ -107,6 +109,12 @@ case "$1" in
         ;;
     create-haproxy-dist-pkg)
         createHAProxyDistPackage
+        ;;
+    create-update-package)
+        downloadImagesAndCreatePackage
+        ;;
+    upload-update-images)
+        uploadUpdateImages
         ;;
     *)
         usage
