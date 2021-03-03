@@ -114,3 +114,16 @@ See backup instructions in docs https://docs.openshift.com/container-platform/4.
 * Move files to location that is safe if disaster occurs.
 
 == Restore etcd
+
+Restore is documented: https://docs.openshift.com/container-platform/4.6/backup_and_restore/disaster_recovery/scenario-2-restoring-cluster-state.html.
+
+The steps 1-8 in the documentation can be done using _restore_-scripts in the _backup_-directory. 
+
+If using scripts, execute scripts in order and follow instructions
+
+* `sh restore_etcd_step_1.sh`
+* `sh restore_etcd_step_2.sh`
+* `sh restore_etcd_step_3.sh`
+* `sh restore_etcd_step_4.sh`
+* After executing step 4, https://docs.openshift.com/container-platform/4.6/backup_and_restore/disaster_recovery/scenario-2-restoring-cluster-state.html[go to documentation] and continue from step 9.
+
