@@ -11,6 +11,8 @@ https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner[Kubernetes NF
 === Online installation
 
 * Follow instructions in https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner.
+* After storage class is created, optionally set _managed-nfs-storage_-storageclass as default:
+** `oc patch storageclass managed-nfs-storage -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'`
 
 === Airgapped installation
 
@@ -113,7 +115,7 @@ Internal image registry is not initially available in OpenShift UPI online or ai
 ** For example, NFS provisioner described previously.
 * Configure a default storageclass (like NFS provisioner).
 * Patch image registry operator configuration:
-** `oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'``
+** `oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'`
 * The patch-command creates also default route for the registry.
 ** Get default route using command:
 ** `oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'`
