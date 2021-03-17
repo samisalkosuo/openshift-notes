@@ -104,6 +104,15 @@ It is possible to place pods in specific nodes using node selectors. Here we pla
 * Delete router pods to reschedule:
 ** `oc -n openshift-ingress get pods --no-headers |awk '{print "oc -n openshift-ingress delete pod " $1}' | sh`
 
+== Set/unset master nodes as workers
+
+When selecting three-node cluster, master-nodes are also worker-nodes. If adding later new workers, it might be desirable to remove worker role from master-nodes.
+
+* Remove worker role from masters:
+** `oc patch schedulers.config.openshift.io/cluster --type merge -p '{"spec":{"mastersSchedulable":false}}'`
+* And vice versa, add worker role to masters:
+** `oc patch schedulers.config.openshift.io/cluster --type merge -p '{"spec":{"mastersSchedulable":true}}'`
+
 
 == Backup etcd
 
