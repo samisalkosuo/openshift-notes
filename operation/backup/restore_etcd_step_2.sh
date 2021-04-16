@@ -43,10 +43,10 @@ ssh core@${__master3} sudo mv /etc/kubernetes/manifests/kube-apiserver-pod.yaml 
 
 echo "Verify that the etcd pods the Kubernetes API server pods are stopped..."
 echo "Use following commands..."
-echo ssh core@${__master2} sudo crictl ps | grep etcd | grep -v operator
-echo ssh core@${__master2} sudo crictl ps | grep kube-apiserver | grep -v operator
-echo ssh core@${__master3} sudo crictl ps | grep etcd | grep -v operator
-echo ssh core@${__master3} sudo crictl ps | grep kube-apiserver | grep -v operator
+echo "ssh core@${__master2} sudo crictl ps | grep etcd | grep -v operator"
+echo "ssh core@${__master2} sudo crictl ps | grep kube-apiserver | grep -v operator"
+echo "ssh core@${__master3} sudo crictl ps | grep etcd | grep -v operator"
+echo "ssh core@${__master3} sudo crictl ps | grep kube-apiserver | grep -v operator"
 echo "When all commands show empty result, continue to STEP 3."
 
 echo "Restoring etcd STEP 2...done."
