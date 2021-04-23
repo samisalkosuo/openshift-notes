@@ -74,13 +74,22 @@ function packageFilesForBastion
 function createHAProxyDistPackage
 {
     echo "creating dist-package for HAProxy..."
-    if [ ! -d local_repository ]; then
-      error "local_repository directory does not exist."
+    local __local_repository_dir=local_repository
+    if [ ! -d ${__local_repository_dir} ]; then
+      __local_repository_dir=dist/local_repository
+      if [ ! -d ${__local_repository_dir} ]; then
+        error "local_repository directory does not exist."
+      else
+        #if local repo dir is in dist-dir, move it to .
+        #so that other functions work correctly
+        mv ${__local_repository_dir} .
+        __local_repository_dir=local_repository
+      fi
     fi
     #tar -cf dist_haproxy.tar local_repository/ *sh scripts/ templates/
     #add dummy pull-secret.json
     echo "dummy pull-secret.json so that OCP_PULL_SECRET_FILE points to fle in haproxy server" > dummy_pull_secret
-    tar --transform='flags=r;s|dummy_pull_secret|pull-secret.json|' -cf dist_haproxy.tar dummy_pull_secret local_repository/ *sh scripts/ templates/
+    tar --transform='flags=r;s|dummy_pull_secret|pull-secret.json|' -cf dist_haproxy.tar dummy_pull_secret ${__local_repository_dir}/ *sh scripts/ templates/
     echo "copy/move following file to haproxy server:"
     echo "  dist_haproxy.tar"
     echo "creating dist-package for HAProxy...done."

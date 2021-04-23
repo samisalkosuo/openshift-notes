@@ -12,34 +12,35 @@ function usage
   echo $"Usage: $0 <command>"
   echo ""
   echo "command (online):"
-  echo "  install-prereqs         - Install prereqs."
-  echo "  download-clients        - Download OpenShift clients and KubeTerminal."
+  echo "  install-prereqs          - Install prereqs."
+  echo "  download-clients         - Download OpenShift clients and KubeTerminal."
   echo ""
   echo "command (bastion, online/airgapped):"
-  echo "  setup-ntp               - Setup NTP server."
-  echo "  setup-apache            - Setup Apache server for RHCOS images and iginition files."
-  echo "  setup-dns               - Setup DNS server."
-  echo "  setup-dhcp              - Setup DHCP and PXE server."
-  echo "  setup-openshift-install - Setup bastion for OpenShift installation."
+  echo "  setup-ntp                - Setup NTP server."
+  echo "  setup-apache             - Setup Apache server for RHCOS images and iginition files."
+  echo "  setup-dns                - Setup DNS server."
+  echo "  setup-dhcp               - Setup DHCP and PXE server."
+  echo "  setup-openshift-install  - Setup bastion for OpenShift installation."
   echo ""
   echo "command (bastion/haproxy, online/airgapped):"
-  echo "  setup-haproxy           - Setup HAProxy server."
+  echo "  setup-haproxy            - Setup HAProxy server."
   echo ""
   echo "command (jump-server, online):"
-  echo "  create-certs            - Create CA-cert and certificate for registry."
-  echo "  create-mirror-registry  - Create mirror registry."
-  echo "  do-mirroring            - Mirror OpenShift images to mirror-registry."
-  echo "  create-dist-package     - Create dist-package to be transferred to airgapped bastion."
-  echo "  create-update-package   - Create OpenShift update package to be transferred to airgapped bastion."
+  echo "  create-certs             - Create CA-cert and certificate for registry."
+  echo "  create-mirror-registry   - Create mirror registry."
+  echo "  do-mirroring             - Mirror OpenShift images to mirror-registry."
+  echo "  create-dist-package      - Create dist-package to be transferred to airgapped bastion."
+  echo "  create-update-package    - Create OpenShift update package to be transferred to airgapped bastion."
   echo ""
   echo "command (bastion, airgapped):"
-  echo "  prepare-bastion         - Prepare bastion for OpenShift installation."
-  echo "  create-haproxy-dist-pkg - Create dist-package to be transferred to haproxy-server."
-  echo "  upload-update-images    - Upload OpenShift update images to mirror registry."
+  echo "  prepare-bastion          - Prepare bastion for OpenShift installation."
+  echo "  create-local-repository  - Create local repository for prereq packages."
+  echo "  create-haproxy-dist-pkg  - Create dist-package to be transferred to haproxy-server."
+  echo "  upload-update-images     - Upload OpenShift update images to mirror registry."
   echo ""
   echo "command (all):"
-  echo "  firewall-open           - Open firewall ports."
-  echo "  firewall-close          - Open firewall ports."
+  echo "  firewall-open            - Open firewall ports."
+  echo "  firewall-close           - Open firewall ports."
   echo ""
   exit 1
 }
@@ -99,6 +100,9 @@ case "$1" in
     do-mirroring)
         createPullSecret
         mirrorOpenShiftImages
+        ;;
+    create-local-repository)
+        createOfflineRepository
         ;;
     create-dist-package)
         createOfflineRepository
