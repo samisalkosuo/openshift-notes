@@ -70,6 +70,8 @@ Adding new worker node is straight-forward process.
 ** `oc get csr`
 ** If any request in in 'Pending'-state, approve them:
 ** `oc adm certificate approve <csr name>`
+** Approve all pending certificate requests using command:
+*** `oc get csr |grep Pending |awk '{print "oc adm certificate approve " $1}' |sh`
 * View node status using command:
 ** `oc get nodes`
 * When new worker node shows _Ready_, then it is ready.
@@ -130,9 +132,32 @@ The steps 1-8 in the documentation can be done using _restore_-scripts in the _b
 
 If using scripts, execute scripts in order and follow instructions
 
+* Copy _snapshot*_ and _static_*_ backup files to directory where _restore_-scripts are.
 * `sh restore_etcd_step_1.sh`
 * `sh restore_etcd_step_2.sh`
 * `sh restore_etcd_step_3.sh`
 * `sh restore_etcd_step_4.sh`
 * After executing step 4, https://docs.openshift.com/container-platform/4.6/backup_and_restore/disaster_recovery/scenario-2-restoring-cluster-state.html[go to documentation] and continue from step 9.
 
+== Delete terminating namespace
+
+Sometimes, when deleting namespace, it gets stuck at "Terminating".
+
+* Find the root cause:
+** Use https://github.com/thyarles/knsk
+** Or check https://github.com/kubernetes/kubernetes/issues/60807#issuecomment-524772920
+** Or https://www.openshift.com/blog/the-hidden-dangers-of-terminating-namespaces
+
+But if namespace just needs to be removed, you can forcefully delete it.
+
+* Edit namespace and remove all finalizers
+** `oc edit namespace annoying-namespace`
+* If it does not work, then continue.
+* Get annoying namespace as JSON:
+** `oc get namespace annoying-namespace -o json > tmp.json`
+* Edit tmp.json
+** Find _finalizers_ and remove all entries (usually "kubernetes")
+* Apply tmp.json:
+** `oc replace --raw "/api/v1/namespaces/annoying-namespace/finalize" -f ./tmp.json`
+* Verify that namespace is deleted
+** `oc get namespace |grep Terminating`

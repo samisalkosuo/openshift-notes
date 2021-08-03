@@ -20,6 +20,12 @@ This directory includes scripts to install OpenShift on user-provisioned infrast
 * OpenShift nodes are available. 
 ** For example: virtual machines have been created (no OS installed).
 
+==== RHEL subscription
+
+If using RHEL, use following command to enable subscription (if not already enabled).
+
+* `subscription-manager register --username <username> --password <password> --auto-attach`
+
 === Airgapped environment
 
 * Jump-server with access to Internet is fresh RHEL installation (for example, 8.2).

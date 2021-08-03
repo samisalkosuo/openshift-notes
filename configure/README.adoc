@@ -63,6 +63,22 @@ As an example, NFS server can be installed on the bastion server.
 
 == Image registry
 
+=== Internal registry
+
+Internal image registry is not initially available in OpenShift UPI online or airgapped installations.
+
+* Image registry requires persistent storage before it can be made available.
+* Configure storageclass for dynamic provisioning.
+** For example, NFS provisioner described previously.
+* Configure a default storageclass (like the NFS provisioner).
+* Patch image registry operator configuration:
+** `oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'`
+* The patch-command creates also default route for the registry.
+** Get default route using command:
+** `oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'`
+* Registry can not be used until an identity provider (for example LDAP or HTPasswd) has been configured.
+** See later sections about LDAP and HTPasswd identity provider.
+
 === External registry
 
 External registry is an image registry for containers that should be available for OpenShift but, for any reason, not available from public registry or internal image registry.
@@ -105,23 +121,6 @@ Push images to external registry:
 * Push image:
 ** `podman push external-registry.forum.fi.ibm.com:5001/<myimage>`
 * Use image in YAML files etc.
-
-=== Internal registry
-
-Internal image registry is not initially available in OpenShift UPI online or airgapped installations.
-
-* Image registry requires persistent storage before it can be made available.
-* Configure storageclass for dynamic provisioning.
-** For example, NFS provisioner described previously.
-* Configure a default storageclass (like NFS provisioner).
-* Patch image registry operator configuration:
-** `oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'`
-* The patch-command creates also default route for the registry.
-** Get default route using command:
-** `oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'`
-* Registry can not be used until an identity provider (for example LDAP or HTPasswd) has been configured.
-** See later section about LDAP identity provider.
-** See https://docs.openshift.com/container-platform/4.6/authentication/identity_providers/configuring-htpasswd-identity-provider.html[docs] about HTPasswd identity provider.
 
 == LDAP
 

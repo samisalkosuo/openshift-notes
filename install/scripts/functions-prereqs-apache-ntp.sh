@@ -6,6 +6,7 @@ function installPrereqs
     yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     dnf -y install --enablerepo=epel-testing $__prereq_packages
     #install tools to create local repository in jump/online server
+    dnf -y copr enable frostyx/modulemd-tools-epel
     dnf -y install --enablerepo=epel-testing $__prereq_packages_jump
     echo "Installing prereq packages...done."
 }
