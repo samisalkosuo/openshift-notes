@@ -84,15 +84,15 @@ Internal image registry is not initially available in OpenShift UPI online or ai
 External registry is an image registry for containers that should be available for OpenShift but, for any reason, not available from public registry or internal image registry.
 
 The most obvious use case for external registry is for the airgapped OpenShift installation.
+The registry is created using script link:external-registry/create-registry.sh[create-registry.sh].
 
-* Open link:../config.sh[config.sh]
-** Find and modify _OCP_EXTERNAL_REGISTRY*_ environment variables to match your preferences.
-* During installation a mirror registry was created but that is used only for OpenShift images.
-* The name for the external registry is:
-** _external-registry_, this name was added to registry certificate during installation.
-* External registry uses the same certificate as mirror registry.
-* Create external registry in bastion server:
-** `sh omg.sh create-external-registry`
+* Create external registry using command:
+** `sh create-registry.sh <REGISTRY_NAME> <REGISTRY_DIR> <REGISTRY_PORT> <REGISTRY_CRT_FILE_PATH> <REGISTRY_KEY_FILE_PATH>`
+** _REGISTRY_NAME_ is the name of the systemd service.
+** _REGISTRY_DIR_ is the full path to registry dir. It is created if it does not exist.
+** _REGISTRY_PORT_ is registry port.
+** _REGISTRY_CRT_FILE_PATH_ is the full path to certificate file.
+** _REGISTRY_KEY_FILE_PATH_ is the full path to certificate key file.
 * Registry container is controlled using systemctl.
 
 ==== Configure OpenShift
