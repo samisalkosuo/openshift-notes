@@ -2,23 +2,35 @@ function downloadClients
 {
   echo "Downloading clients..."
   if [ ! -f "/usr/local/bin/oc" ]; then
-    local __oc_client_filename=openshift-client-linux.tar.gz
+    local __client_filename=openshift-client-linux.tar.gz
 
     local dlurl=https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_VERSION
     echo "Downloading oc..."
-    curl $dlurl/${__oc_client_filename} > ${__oc_client_filename}
+    curl $dlurl/${__client_filename} > ${__client_filename}
 
     echo "Copying oc and kubectl to /usr/local/bin/..."
-    tar  -C /usr/local/bin/ -xf ${__oc_client_filename}
+    tar  -C /usr/local/bin/ -xf ${__client_filename}
 
     echo "Downloading openshift-install..."
-    __oc_client_filename=openshift-install-linux.tar.gz
-    curl $dlurl/${__oc_client_filename} > ${__oc_client_filename}
+    __client_filename=openshift-install-linux.tar.gz
+    curl $dlurl/${__client_filename} > ${__client_filename}
     echo "Copying openshift-install to /usr/local/bin/"
-    tar  -C /usr/local/bin/ -xf ${__oc_client_filename}
+    tar  -C /usr/local/bin/ -xf ${__client_filename}
+
+    echo "Downloading opm..."
+    __client_filename=opm-linux.tar.gz
+    curl $dlurl/${__client_filename} > ${__client_filename}
+    echo "Copying opm to /usr/local/bin/"
+    tar  -C /usr/local/bin/ -xf ${__client_filename}
+
+    echo "Downloading grpcurl..."
+    __client_filename=grpcurl_1.8.2_linux_x86_64.tar.gz
+    curl -L https://github.com/fullstorydev/grpcurl/releases/download/v1.8.2/${__client_filename} > ${__client_filename}
+    echo "Copying grpcurl to /usr/local/bin/"
+    tar  -C /usr/local/bin/ -xf ${__client_filename}
 
     echo "Downloading kubeterminal.bin..."
-    podman create -it --name kubeterminal kazhar/kubeterminal bash
+    podman create -it --name kubeterminal docker.io/kazhar/kubeterminal bash
     podman cp kubeterminal:/kubeterminal kubeterminal.bin
     podman rm -fv kubeterminal
     podman rmi kazhar/kubeterminal

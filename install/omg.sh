@@ -11,7 +11,7 @@ function usage
   echo ""
   echo $"Usage: $0 <command>"
   echo ""
-  echo "command (online):"
+  echo "command (online, bastion and jump-server):"
   echo "  install-prereqs          - Install prereqs."
   echo "  download-clients         - Download OpenShift clients and KubeTerminal."
   echo ""
