@@ -36,12 +36,9 @@ function packageFilesForBastion
     echo "copy mirror-registry service file..."
     cp /etc/systemd/system/${__omg_mirror_registry_systemd_service_name}.service ${__dist_dir}/ 
 
-    echo "copying binaries..."
+    echo "copying binaries from /usr/local/bin..."
     mkdir -p $__dist_dir/bin
-    cp /usr/local/bin/oc ${__dist_dir}/bin/
-    cp /usr/local/bin/kubectl ${__dist_dir}/bin/
-    cp /usr/local/bin/kubeterminal* ${__dist_dir}/bin/
-    cp /usr/local/bin/openshift-install ${__dist_dir}/bin/
+    cp /usr/local/bin/* ${__dist_dir}/bin/
 
     echo "copying pull-secret bundle..."
     if [ ! -f run-omg/pull-secrets/pull-secret-bundle.json ]; then

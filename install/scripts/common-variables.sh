@@ -12,3 +12,6 @@ __omg_mirror_registry_directory=/opt/mirror-registry
 __omg_mirror_registry_systemd_service_name=mirror-registry
 
 __omg_pull_secret_dir=${__omg_runtime_dir}/pull-secrets
+
+#default operator index 
+__operator_index_image=registry.redhat.io/redhat/redhat-operator-index:v${OCP_MAJOR_VERSION}

@@ -11,34 +11,46 @@ function usage
   echo ""
   echo $"Usage: $0 <command>"
   echo ""
-  echo "command (online, bastion and jump-server):"
+  echo "install prereqs and clients (online, bastion and jump-server):"
   echo "  install-prereqs          - Install prereqs."
   echo "  download-clients         - Download OpenShift clients and KubeTerminal."
   echo ""
-  echo "command (bastion, online/airgapped):"
+  echo "setup services (bastion, online/airgapped):"
   echo "  setup-ntp                - Setup NTP server."
   echo "  setup-apache             - Setup Apache server for RHCOS images and iginition files."
   echo "  setup-dns                - Setup DNS server."
   echo "  setup-dhcp               - Setup DHCP and PXE server."
+  echo ""
+  echo "setup OpenShift installation (bastion, online/airgapped):"
   echo "  setup-openshift-install  - Setup bastion for OpenShift installation."
   echo ""
-  echo "command (bastion/haproxy, online/airgapped):"
+  echo "setup services (bastion/haproxy, online/airgapped):"
   echo "  setup-haproxy            - Setup HAProxy server."
   echo ""
-  echo "command (jump-server, online):"
+  echo "prepare for airgapped install (jump-server, online):"
   echo "  create-certs             - Create CA-cert and certificate for registry."
   echo "  create-mirror-registry   - Create mirror registry."
   echo "  do-mirroring             - Mirror OpenShift images to mirror-registry."
+  echo "  download-ocp-images      - Mirror OpenShift images to files."
   echo "  create-dist-package      - Create dist-package to be transferred to airgapped bastion."
-  echo "  create-update-package    - Create OpenShift update package to be transferred to airgapped bastion."
   echo ""
-  echo "command (bastion, airgapped):"
+  echo "install airgapped OpenShift (bastion, airgapped):"
   echo "  prepare-bastion          - Prepare bastion for OpenShift installation."
   echo "  create-local-repository  - Create local repository for prereq packages."
   echo "  create-haproxy-dist-pkg  - Create dist-package to be transferred to haproxy-server."
-  echo "  upload-update-images     - Upload OpenShift update images to mirror registry."
   echo ""
-  echo "command (all):"
+  echo "update airgapped OpenShift (jump-server/bastion, online/airgapped):"
+  echo "  create-update-package    - Create OpenShift update package to be transferred to airgapped bastion (online jump-server)."
+  echo "  upload-update-images     - Upload OpenShift update images to mirror registry (airgapped bastion)."
+  echo ""
+  echo "operator catalog for airgapped installation (jump-server/bastion, online/airgapped):"
+  echo "  olm-index                - Print index image used (online jump-server)."
+  echo "  olm-list                 - List operators in index (online jump-server)."
+  echo "  olm-prune-index          - Prune index (online jump-server)."
+  echo "  olm-download-images      - Download images based on index (online jump-server)."
+  echo "  olm-upload-images        - Upload mirrored images to registry (bastion airgapped)."
+  echo ""
+  echo "firewall (all):"
   echo "  firewall-open            - Open firewall ports."
   echo "  firewall-close           - Open firewall ports."
   echo ""
@@ -119,6 +131,12 @@ case "$1" in
         ;;
     upload-update-images)
         uploadUpdateImages
+        ;;
+    olm-index)
+        olm_printOperatorIndexImage
+        ;;
+    olm-list)
+        olm_listOperators
         ;;
     *)
         usage

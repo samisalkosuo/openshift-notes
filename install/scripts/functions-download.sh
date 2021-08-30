@@ -29,6 +29,12 @@ function downloadClients
     echo "Copying grpcurl to /usr/local/bin/"
     tar  -C /usr/local/bin/ -xf ${__client_filename}
 
+    echo "Downloading cloudctl..."
+    __client_filename=cloudctl-linux-amd64.tar.gz
+    curl -L https://github.com/IBM/cloud-pak-cli/releases/download//${CLOUDCTL_VERSION}/${__client_filename} > ${__client_filename}
+    tar  -C /usr/local/bin/ -xf ${__client_filename}
+    mv /usr/local/bin/cloudctl* /usr/local/bin/cloudctl
+
     echo "Downloading kubeterminal.bin..."
     podman create -it --name kubeterminal docker.io/kazhar/kubeterminal bash
     podman cp kubeterminal:/kubeterminal kubeterminal.bin
@@ -46,10 +52,10 @@ function downloadClients
 
 function downloadFile
 {
-#naming conventions
-#kernel: rhcos-<version>-live-kernel-<architecture>
-#initramfs: rhcos-<version>-live-initramfs.<architecture>.img
-#rootfs: rhcos-<version>-live-rootfs.<architecture>.img
+  #naming conventions
+  #kernel: rhcos-<version>-live-kernel-<architecture>
+  #initramfs: rhcos-<version>-live-initramfs.<architecture>.img
+  #rootfs: rhcos-<version>-live-rootfs.<architecture>.img
 
    local dlurl=https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/${__release}/${__version}
    local dir=/var/www/html/rhcos
@@ -59,7 +65,6 @@ function downloadFile
     wget --directory-prefix=${dir} ${dlurl}/$1
   fi 
 }
-
 
 function downloadRHCOSBinaries
 {

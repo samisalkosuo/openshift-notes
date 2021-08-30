@@ -1,7 +1,7 @@
 #Env variables for native online OpenShift install
 
 #path to pull-secret.json
-export OCP_PULL_SECRET_FILE=/root/pull-secret.json
+export OCP_PULL_SECRET_FILE=/root/openshift-notes/pull-secret.json
 
 #when instructed during installation
 #set this to no when removing bootstrap from haproxy 
@@ -10,17 +10,23 @@ export OCP_NODE_HAPROXY_ADD_BOOTSTRAP=yes
 #OCP version to install/upgrade
 #check https://mirror.openshift.com/pub/openshift-v4/clients/ocp/
 #for desired version 
-export OCP_VERSION=4.6.8
+export OCP_VERSION=4.6.42
+export OCP_MAJOR_VERSION=4.6
 
 #Find correct RHCOS major release and version from
 #https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/
 #match RHCOS with chosen OCP
 export OCP_RHCOS_MAJOR_RELEASE=4.6
-export OCP_RHCOS_VERSION=4.6.8
+export OCP_RHCOS_VERSION=4.6.40
+
+#IBM Cloud CLI (cloudctl) version
+#check latest version from https://github.com/IBM/cloud-pak-cli/releases
+export CLOUDCTL_VERSION=v3.10.0
+
 
 #set this variable is cluster is only three nodes (that is, 3 masters)
 #use values 'yes' or 'no'
-export OCP_THREE_NODE_CLUSTER=yes
+export OCP_THREE_NODE_CLUSTER=no
 
 #OCP_DOMAIN is your domain where OpenShift is installed
 export OCP_DOMAIN=forum.fi.ibm.com
@@ -29,6 +35,7 @@ export OCP_CLUSTER_NAME=cluster2
 #OpenShift install user, created in bastion server
 export OCP_INSTALL_USER=ocp
 
+#do not change, unless explicitly instructed 
 export OCP_RELEASE="${OCP_VERSION}-x86_64"
 export OCP_LOCAL_REPOSITORY='ocp/openshift4'
 export OCP_PRODUCT_REPO='openshift-release-dev'

@@ -24,11 +24,19 @@ function createPullSecret
 
 function mirrorOpenShiftImages
 {
-    echo "Mirroring images..."
+    echo "Mirroring images to registry..."
     local __local_registry=$__omg_mirror_registry_host_name.$OCP_DOMAIN:$__omg_mirror_registry_port
     local __local_secret_json=${__omg_pull_secret_dir}/pull-secret-bundle.json
     local __mirror_output_file=${__omg_runtime_dir}/mirror-output.txt 
 
     oc adm -a ${__local_secret_json} release mirror --from=quay.io/${OCP_PRODUCT_REPO}/${OCP_RELEASE_NAME}:${OCP_RELEASE} --to=${__local_registry}/${OCP_LOCAL_REPOSITORY} --to-release-image=${__local_registry}/${OCP_LOCAL_REPOSITORY}:${OCP_RELEASE} 2>&1 | tee ${__mirror_output_file}
+
+}
+
+function downloadOpenShiftImages
+{
+    echo "Mirroring images to files..."
+
+    #oc adm -a ${__local_secret_json} release mirror --from=quay.io/${OCP_PRODUCT_REPO}/${OCP_RELEASE_NAME}:${OCP_RELEASE} --to=${__local_registry}/${OCP_LOCAL_REPOSITORY} --to-release-image=${__local_registry}/${OCP_LOCAL_REPOSITORY}:${OCP_RELEASE} 2>&1 | tee ${__mirror_output_file}
 
 }
