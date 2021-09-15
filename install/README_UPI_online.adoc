@@ -1,0 +1,251 @@
+= OpenShift installation on user-provisioned infrastructure - online
+:toc: left
+:toc-title: Table of Contents
+
+This directory includes scripts to install OpenShift on user-provisioned infrastructure in online environment. 
+
+On-premise infrastructure can be bare metal, or virtualized servers. Everything here is based on OpenShift documentation about UPI installation, for example https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-bare-metal.html[bare metal installations].
+
+The idea behind this repo and these scripts is to provide quick install of OpenShift with minimal external dependencies.
+
+The helper script link:omg-upi-online.sh[omg-upi-online.sh] has commands to setup DNS, DHCP, Load balancer and others that support OpenShift and enable quick install with minimal external dependencies.
+
+== Requirements
+
+* Access to infrastructure to create servers, bare metal or virtual servers.
+** There must be enough resources to install OpenShift and any workloads on top of it.
+* Bastion host, preferrably a RHEL-based Linux server. 
+** Installation (and administration) is done from this bastion.
+* Internet access.
+
+== Prepare
+
+Before installing OpenShift, prepare yourself.
+
+* Login to bastion as root.
+* Clone or download this repo.
+* https://console.redhat.com/openshift/downloads[Download _pull-secret.json_ from Red Hat].
+* Set environment variables in link:upi-environment.sh[upi-environment.sh]
+** Variables include server IP addresses, DHCP and network configuration, and others.
+** Be mindful and set all relevant variables.
+** Source variables: 
+** `source upi_environment.sh`
+* NOTE: server MAC addresses are added later during the installation.
+* Execute helper script,`sh omg-upi-online.sh`, to see help.
+
+== Install tools, clients and RHCOS
+
+* Install prereq packages (like DHCP) and useful tools:
+** `sh omg-upi-online.sh install-prereqs`
+* Download and install required clients/tools like _oc_, _openshift-install_, _coredns_, etc.:
+** `sh omg-upi-online.sh download-clients`
+* Download RHCOS files:
+** `sh omg-upi-online.sh download-rhcos`
+
+== Create servers
+
+Since this is user-provisioned infrastructure install, user needs to provision infrastructure.
+
+* Create/obtain/purchase/"find" five servers:
+** bootstrap (8 CPU, 16GB RAM, 120GB disk)
+** three masters (8 CPU, 16GB RAM, 120GB disk)
+** two workers (for example: 16 CPU, 32GB RAM, 120GB disk)
+*** more workers can be added later, after installation is done
+* After servers are available, find out server MAC addresses.
+* Add MAC addresses to node environment variables in link:upi-environment.sh[upi-environment.sh]
+** Example:
+```
+export OCP_NODE_BOOTSTRAP="bootstrap 192.168.47.21 00:50:56:b3:12:1c"
+export OCP_NODE_MASTER_01="master1 192.168.47.22 00:50:56:b3:ae:24"
+export OCP_NODE_MASTER_02="master2 192.168.47.23 00:50:56:b3:c5:52"
+export OCP_NODE_MASTER_03="master3 192.168.47.24 00:50:56:b3:26:f4"
+
+export OCP_NODE_WORKER_HOSTS=" \
+worker01 192.168.47.111 00:50:56:b3:5e:c3  ; \
+worker02 192.168.47.112 00:50:56:b3:73:d9  ; \
+worker03 192.168.47.113 00:50:56:b3:01:82  ; \
+"
+```
+* Source variables: 
+** `source upi_environment.sh`
+
+== Setup services
+
+OpenShift requires services DHCP, DNS, NTP. Load balancer is good to have.
+
+You need to have required services configured, up and running before installing OpenShift. All services can be set up on bastion, if you don't have or don't want to use external services.
+
+=== NTP
+
+* Setup bastion as NTP server:
+** `sh omg-upi-online.sh setup-ntp`
+
+=== DNS
+
+* Setup bastion as DNS server:
+** `sh omg-upi-online.sh setup-dns`
+
+OpenShift domains and nodes  are added to DNS as well as additional hosts specified _OCP_OTHER_DNS_HOSTS_ environment variable.
+There is _DNS_FORWARDERS_ environment variable that should have any external DNS addresses. The command also configures bastion to use local DNS.
+
+DNS is https://coredns.io/[CoreDNS] and configured as systemd service (`systemctl status coredns`).
+
+Configuration is in _/etc/coredns/_ directory.
+
+=== Apache
+
+* Setup up bastion as Apache-server:
+** `sh omg-upi-online.sh setup-apache`
+
+Apache is used to download RHCOS binaries during PXE boot and it serves ignition files to OpenShift nodes.
+
+Apache configuration file is _/etc/httpd/conf/httpd.conf_ and directory _/var/www/html/_ contains RHCOS and ignition files.
+
+Apache listens on port 8080 and it is configured as systemd service (`systemctl status httpd`).
+
+=== DHCP and PXE
+
+* Setup bastion as DHCP and PXE server:
+** `sh omg-upi-online.sh setup-dhcp`
+
+DHCP is configured to give fixed IP addresses for nodes. MAC address is used to give specific IP to a node.as specified in environment variables and dynamically gives IP addresses to OpenShift nodes.
+
+Services for PXE is also started and files created. 
+
+DHCP is configured as systemd service (`systemctl status dhcpd`). TFTP uses dnsmasq (`systemctl status dnsmasq`).
+
+Configuration is in file _/etc/dhcp/dhcpd.conf_. PXE files are in directory _/usr/share/syslinux/pxelinux.cfg/_.
+
+=== Load balancer
+
+* Setup bastion as load balancer:
+** `sh omg-upi-online.sh setup-lb`
+
+Load balancer is configured to forward OpenShift API requests to one the three masters and apps requests two first two of the worker nodes. During installation, API requests are forwarded also to bootstrap node.
+
+Load balancer is http://gobetween.io/[gobetween].
+
+Gobetween is configured as systemd service (`systemctl status gobetween`).
+
+Configuration is in file _/etc/gobetween/config.toml_.
+
+==== Load balancer distribution
+
+If you use another host as load balancer, you can create load balancer distribution file and copy/move it load balancer host.
+
+* Create load balancer distribution:
+** `sh omg-upi-online.sh create-lb-dist-package`
+** Gobetween binary, environment variable file, and scripts are added to _dist-lb.tar_ file.
+* Move/copy _dist-lb.tar_ to load balancer.
+* Extract tar using:
+** `tar -P -xf dist-lb.tar`
+** Note: -P option is important.
+* Verify that environment variables are correct in link:upi-environment.sh[upi-environment.sh].
+* Configure and start Gobetween load balancer:
+** `sh setup-lb.sh`
+
+When bootstrap is complete and bootstrap node can be removed, edit link:upi-environment.sh[upi-environment.sh] and execute `sh setup-lb.sh` again.
+
+=== Firewall
+
+Before installing OpenShift, open required ports in Bastion:
+
+* `sh omg-upi-online.sh firewall open`
+
+== Install OpenShift
+
+OpenShift UPI-installation is done in steps:
+
+* Prepare for installation:
+** `sh omg-upi-online.sh ocp-prepare-install`
+** This creates SSH key (if not already created), installation directory, install-config.yaml and ignition files.
+* Optionally print install checklist:
+** `sh omg-upi-online.sh ocp-start-install`
+* Boot up bootstrap node.
+** Verify that it gets IP address and installs CoreOS.
+** Verify that you can access it using `ssh core@bootstrap`
+* Boot up all master nodes.
+** Verify that they gets IP addresses and install CoreOS.
+** Verify that you can access master nodes using `ssh core@masterX`
+* Wait for for bootstrap to be complete:
+** `sh omg-upi-online.sh ocp-complete-bootstrap`
+** After a while, you see output similar to this:
+```
+Waiting for bootstrap...
+level=debug msg="OpenShift Installer 4.6.42"
+level=debug msg="Built from commit a143fac3ec47974e5e735a14948b60dd63f1bedb"
+level=info msg="Waiting up to 20m0s for the Kubernetes API at https://api.ocp07.forum.fi.ibm.com:6443..."
+level=info msg="API v1.19.0+4c3480d up"
+level=info msg="Waiting up to 30m0s for bootstrapping to complete..."
+level=debug msg="Bootstrap status: complete"
+level=info msg="It is now safe to remove the bootstrap resources"
+level=info msg="Time elapsed: 0s"
+Waiting for bootstrap...done.
+
+```
+* As instructed, remove bootstrap node:
+** Open link:upi-environment.sh[upi-environment.sh]
+** set `OCP_BOOTSTRAP_COMPLETE=yes`
+** `source upi-environment.sh`
+** Configure load balancer: `sh omg-upi-online.sh setup-lb` or `sh setup-lb.sh`.
+** Shutdown (and delete) bootstrap server.
+* Boot up at least two worker nodes.
+* Wait and approve CSRs:
+** Use `sh omg-upi-online.sh ocp-csr` to watch CSRs.
+** When one or more CSRs are 'Pending'.
+** Approve them: `sh omg-upi-online.sh ocp-approve-csr`
+** Remember to approve all certificate requests, there are two requests per worker node.
+* Wait until all nodes are 'Ready':
+** `sh omg-upi-online.sh ocp-nodes`
+* Wait until all cluster operators are available:
+** `sh omg-upi-online.sh ocp-cluster-operators`
+* When all are available, cluster operator status is similar to:
+```
+NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
+authentication                             4.6.42    True        False         False      3m52s
+cloud-credential                           4.6.42    True        False         False      48m
+cluster-autoscaler                         4.6.42    True        False         False      38m
+config-operator                            4.6.42    True        False         False      39m
+console                                    4.6.42    True        False         False      11m
+csi-snapshot-controller                    4.6.42    True        False         False      38m
+dns                                        4.6.42    True        False         False      33m
+etcd                                       4.6.42    True        False         False      37m
+image-registry                             4.6.42    True        False         False      34m
+ingress                                    4.6.42    True        False         False      15m
+insights                                   4.6.42    True        False         False      38m
+kube-apiserver                             4.6.42    True        False         False      37m
+kube-controller-manager                    4.6.42    True        False         False      36m
+kube-scheduler                             4.6.42    True        False         False      33m
+kube-storage-version-migrator              4.6.42    True        False         False      16m
+machine-api                                4.6.42    True        False         False      37m
+machine-approver                           4.6.42    True        False         False      36m
+machine-config                             4.6.42    True        False         False      32m
+marketplace                                4.6.42    True        False         False      33m
+monitoring                                 4.6.42    True        False         False      14m
+network                                    4.6.42    True        False         False      39m
+node-tuning                                4.6.42    True        False         False      38m
+openshift-apiserver                        4.6.42    True        False         False      33m
+openshift-controller-manager               4.6.42    True        False         False      36m
+openshift-samples                          4.6.42    True        False         False      32m
+operator-lifecycle-manager                 4.6.42    True        False         False      35m
+operator-lifecycle-manager-catalog         4.6.42    True        False         False      35m
+operator-lifecycle-manager-packageserver   4.6.42    True        False         False      31m
+service-ca                                 4.6.42    True        False         False      38m
+storage                                    4.6.42    True        False         False      39m
+```
+* Complete the installation:
+** `sh omg-upi-online.sh ocp-complete-install`
+*  When installation is complete, this kind of output is printed:
+```
+level=info msg="Waiting up to 40m0s for the cluster at https://api.ocp07.forum.fi.ibm.com:6443 to initialize..."
+level=info msg="Waiting up to 10m0s for the openshift-console route to be created..."
+level=info msg="Install complete!"
+level=info msg="To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/root/ocp-install/auth/kubeconfig'"
+level=info msg="Access the OpenShift web-console here: https://console-openshift-console.apps.ocp07.forum.fi.ibm.com"
+level=info msg="Login to the console with user: \"kubeadmin\", and password: \"YrDkM-bnADS-fDJGx-nTpmZ\""
+level=info msg="Time elapsed: 0s"
+```
+* Make note of console URL, user and password.
+* OpenShift is ready to be used.
+
+

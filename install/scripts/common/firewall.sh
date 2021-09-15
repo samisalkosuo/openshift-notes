@@ -1,4 +1,34 @@
 
+function firewallCommandUsage
+{
+    echo "Usage: $0 firewall <command>"
+    echo ""
+    echo "Command:"
+    echo "  open  - Open ports."
+    echo "  close - Close ports."
+    exit 1
+}
+
+
+function firewallCommand
+{
+    if [[ "$1" == "" ]]; then
+        firewallCommandUsage
+    fi
+    case "$1" in
+        open)
+            openPorts
+        ;;
+        close)
+            closePorts
+        ;;
+        *)
+            firewallCommandUsage
+        ;;
+    esac
+
+}
+
 function openPorts
 {
   echo "Open NTP port..."

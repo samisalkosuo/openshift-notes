@@ -1,0 +1,102 @@
+= OpenShift installation on user-provisioned infrastructure - airgapped
+:toc: left
+:toc-title: Table of Contents
+
+This directory includes scripts to install OpenShift on user-provisioned infrastructure in airgapped environment.
+
+On-premise infrastructure can be bare metal, or virtualized servers. Everything here is based on OpenShift documentation about airgapped installation, for example https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html[Installing a cluster on bare metal in a restricted network].
+
+The idea behind this repo and these scripts is to provide quick install of OpenShift with minimal external dependencies.
+
+The helper script link:omg-upi-airgapped.sh[omg-upi-airgapped.sh] has commands to setup DNS, DHCP, Load balancer and others that support OpenShift and enable quick install with minimal external dependencies.
+
+== Requirements
+
+* A jump server with access to Internet to download all required software.
+** Preferrably a RHEL-based Linux server.
+* Bastion host, preferrably a RHEL-based Linux server. 
+** Installation (and administration) is done from this bastion.
+* NOTE: jump server and bastion must be the same Linux distribution and version, preferrably installed from the same ISO-file (for example https://download.rockylinux.org/pub/rocky/8/isos/x86_64/Rocky-8.4-x86_64-minimal.iso[Rocky Linux 8.4 minimal installation ISO-file]).
+* Access to airgapped infrastructure to create servers, bare metal or virtual servers.
+** There must be enough resources to install OpenShift and any workloads on top of it.
+
+== Prepare
+
+Before installing OpenShift, prepare yourself. Airgapped installation requires a bit more preparation than online installations. 
+
+There are three major steps when doing airgapped installation:
+
+* Download and package all required software using a jump server.
+* Move downloaded packages to a bastion server.
+* Install OpenShift in airgapped environment from the bastion server.
+
+Follow the sections below to do the first major step.
+
+* Login to jump server as root.
+* Clone or download this repo.
+* https://console.redhat.com/openshift/downloads[Download _pull-secret.json_ from Red Hat].
+* Set the following environment variables in link:upi-environment.sh[upi-environment.sh]:
+** _OCP_PULL_SECRET_FILE_, _OCP_VERSION_, _OCP_RHCOS_MAJOR_RELEASE_ and _OCP_RHCOS_VERSION_
+** All other variables are set later in the bastion host.
+** Source variables: 
+** `source upi_environment.sh`
+* Execute helper script,`sh omg-upi-airgapped.sh`, to see help.
+
+
+== Install prereqs and download clients and OpenShift images
+
+* Install prereq packages (like DHCP) and useful tools:
+** `sh omg-upi-airgapped.sh install-prereqs`
+* Download and install required clients/tools like _oc_, _openshift-install_, _coredns_, etc.:
+** `sh omg-upi-airgapped.sh download-clients`
+* Download OpenShift images:
+** `sh omg-upi-airgapped.sh download-ocp-images`
+
+
+== Distribution package
+
+* Create distribution package containing RHCOS, images and others:
+** `sh omg-upi-airgapped.sh create-dist-package`
+** The command creates _dist.tar_ file.
+
+== Copy/move distribution package
+
+* Copy/move _dist.tar_ to airgapped bastion.
+** Use root home directory.
+
+== Prepare airgapped bastion
+
+* Login to bastion.
+* Extract _dist.tar_:
+** `tar -xf dist.tar`
+** Go to extracted directory _ocp-dist_.
+* Edit environment variables link:upi-environment.sh[upi-environment.sh]
+** Add correct domain using _OCP_DOMAIN_-variable.
+* Source environment variables:
+** `source upi-environment.sh`
+** Environment variables are further modified later.
+* Create _pull-secret.json_:
+** `touch $OCP_PULL_SECRET_FILE`
+** This pull secret is populated and used later during mirroring.
+* Create local repository:
+** `sh omg-upi-airgapped.sh create-local-repo`
+* Install prereq packages from local repository:
+** `sh omg-upi-airgapped.sh install-prereqs-bastion`
+** Copies also client binaries to /usr/local/bin.
+** Loads also container images.
+* Create mirror registry:
+** `sh omg-upi-airgapped.sh create-mirror-registry`
+** CA certificate and  mirror registry certificate are created and CA added to local trust.
+*** Directory _/root/ocp-certificates_.
+** Mirror registry name is `mirror-registry`
+** `127.0.0.1 mirror-registry.$OCP_DOMAIN` is added to /etc/hosts.
+** Systemd service named `mirror-registry` is created.
+*** `systemctl status mirror-registry`
+* Upload OpenShift images to mirror registry:
+** `sh omg-upi-airgapped.sh upload-ocp-images`
+
+
+== Install OpenShift
+
+Install OpenShift by following xref:README_UPI_online.adoc[README_UPI_online] and starting from _Create servers_.
+

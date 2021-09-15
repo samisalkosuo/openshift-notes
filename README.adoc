@@ -2,11 +2,11 @@
 
 This repository includes OpenShift related notes, scripts and so on. 
 
-The main purpose of this repository is to provide helpers to install OpenShift in user-provisioned environment in either airgapped or online environment.
+The main purpose of this repository is to provide helpers to install OpenShift in on-premise environment.
 
-* link:install/[install]-directory includes instructions and scripts to install OpenShift in online or airgapped environment.
+* link:install/[install]-directory includes instructions and scripts to install OpenShift in online or airgapped environments.
 * link:configure/[configure]-directory includes instructions and scripts to configure OpenShift.
-* link:operation/[operation]-directory includes instructions and scripts related to operating OpenShift .
+* link:operation/[operation]-directory includes instructions and scripts related to operating OpenShift.
 
 == Architecture
 
@@ -29,7 +29,3 @@ The architecture of OpenShift in the context of this repository. Just a few comm
 ** Or storage could be https://www.openshift.com/products/container-storage/[Red Hat OpenShift Container Storage].
 * Two worker nodes are labeled so that ingress router will run on those nodes.
 * link:images/OCP_typical_VMWare.png[Typical architecture in VMWare ]
-
-== Install
-
-link:install/[install]-directory includes instructions and scripts to install OpenShift in online or airgapped environment using native services for Apache, registry, DNS, DHCP etc.

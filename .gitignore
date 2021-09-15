@@ -5,3 +5,8 @@ credentials.adoc
 pull-secret*
 tmp
 local
+terraform
+ibm/
+govc_environment.sh
+vsphere_environment.sh
+install_old/
