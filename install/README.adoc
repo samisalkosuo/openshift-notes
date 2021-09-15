@@ -3,11 +3,11 @@
 This directory includes scripts to install on-premise OpenShift:
 
 * installer-provisioned infrastructure in online environment.
-** link:README_IPI_online.adoc[README_IPI]
+** xref:README_IPI_online.adoc[README_IPI]
 ** Versions tested: 4.6.42, 4.8.11
 * user-provisioned infrastructure in online/airgapped environment.
-** link:README_online.adoc[README_UPI_online]
+** xref:README_UPI_online.adoc[README_UPI_online]
 *** Versions tested: 4.6.42
-** link:README_airgapped.adoc[README_UPI_airgapped]
+** xref:README_UPI_airgapped.adoc[README_UPI_airgapped]
 *** Versions tested: 4.6.42
 
