@@ -10,3 +10,4 @@ ibm/
 govc_environment.sh
 vsphere_environment.sh
 install_old/
+create_entitled_registry_secret.sh
