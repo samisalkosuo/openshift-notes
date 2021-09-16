@@ -39,17 +39,17 @@ __identity_provider_name=htpasswd_provider
 
 function create
 {
-  echo "Creating htpasswd file and cladmin-user..."
+  echo "Creating htpasswd file and ${__admin_user_name}-user..."
   htpasswd -c -B -b ${__htpasswd_file} ${__admin_user_name} $__admin_password
   echo "Creating OpenShift secret..."
   oc create secret generic ${__htpasswd_secret_name} --from-file=htpasswd=${__htpasswd_file} -n openshift-config
-  echo "Creating HTPasswd Custom Resource..."
-  local __htpasswd_cr_file=htpasswd_cr.yaml
-  cat > $__htpasswd_cr_file << EOF
-apiVersion: config.openshift.io/v1
-kind: OAuth
-metadata:
-  name: cluster
+  echo "Patching cluster OAuth..."
+
+  #get existing identity providers
+  local __existing_providers=existing_providers.yaml
+  oc get oauth cluster -o json | jq .spec.identityProviders | yq e -P - | sed 's/^/\ \ /g' > $__existing_providers
+  local __htpasswd_patch_file=htpasswd_patch.yaml
+  cat > $__htpasswd_patch_file << EOF
 spec:
   identityProviders:
   - name: ${__identity_provider_name}
@@ -59,8 +59,9 @@ spec:
       fileData:
         name: ${__htpasswd_secret_name}
 EOF
-  echo "Applying HTPasswd Customer Resource..."
-  oc apply -f $__htpasswd_cr_file
+  cat $__existing_providers >> $__htpasswd_patch_file
+  echo "Patching HTPasswd Customer Resource..."
+  oc patch --type "merge" oauth cluster  -p "$(cat ${__htpasswd_patch_file})"
   echo "Adding ${__admin_user_name} as cluster admin..."
   oc adm policy add-cluster-role-to-user cluster-admin ${__admin_user_name}
   echo "HTPasswd identity provider added."

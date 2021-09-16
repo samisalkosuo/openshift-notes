@@ -132,9 +132,10 @@ Configure OpenShift to use LDAP identity provider:
 
 * Have LDAP connection information.
 ** For example, https://github.com/samisalkosuo/openldap-docker#ldap-connection-and-filters[see OpenLDAP demo connection info].
-* Edit link:ldap/configure_ldap_idp.sh[configure_ldap_idp.sh] to match your environment.
+* Edit link:ldap/add_ldap_identity_provider.sh[add_ldap_identity_provider.sh] to match your environment.
 * Execute it:
-** `sh configure_ldap_idp.sh`
+** `sh add_ldap_identity_provider.sh`
+** The commands adds new identity provider.
 * Test configuration:
 ** Login as LDAP user: `oc login -u <user>`
 ** `oc whoami`
