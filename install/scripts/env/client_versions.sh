@@ -20,3 +20,6 @@ export GOBETWEEN_VERSION=0.8.0
 #check latest version from https://github.com/vmware/govmomi/releases
 export GOVC_VERSION=0.26.1
 
+#yq version
+#check latest version from https://github.com/mikefarah/yq/releases
+export YQ_VERSION=4.13.0

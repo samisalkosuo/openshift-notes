@@ -87,6 +87,18 @@ function downloadGovc
     
 }
 
+function downloadYQ
+{
+    #https://github.com/mikefarah/yq
+    echo "Downloading yq..."    
+    local __client_filename=yq
+    curl -L https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 > ${__client_filename}
+    chmod 755 yq
+    mv yq /usr/local/bin
+    echo "Downloading yq...done."
+
+}
+
 function downloadClients
 {
   echo "Downloading clients..."
@@ -107,6 +119,8 @@ function downloadClients
     downloadGobetween
 
     downloadGovc
+
+    downloadYQ
     
     downloadKubeterminal
 
