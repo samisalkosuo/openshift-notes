@@ -15,8 +15,6 @@ function usage
   echo ""
   echo "  install-prereqs         - Install prereq packages using dnf."
   echo "  download-clients        - Download clients (oc, openshift-install, coredns, etc.)."
-#  echo "  download-rhcos         - Download RHCOS binaries."
-#  echo "  download-containers    - Download containers to be used in bastion. For example: registry-container."
   echo "  download-ocp-images     - Download OpenShift images to directory."
   echo "  create-dist-package     - Create tar-package for distribution."
   echo ""

@@ -46,15 +46,11 @@ function createDistributionPackage
     local scriptDir=$__dist_dir/
     mkdir -p $scriptDir
 
-
-    #scripts
-    #/usr/local/bin
-    #rhcos
-    #images
-    #local repo of all prereqs
-    
     downloadRHCOSBinaries $__dist_dir/rhcos
 
+    # download useful git repositories
+    downloadGitRepositories    
+    
     #save container images
     downloadContainers
     echo "Saving container images..."

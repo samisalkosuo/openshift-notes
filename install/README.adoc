@@ -9,5 +9,5 @@ This directory includes scripts to install on-premise OpenShift:
 ** xref:README_UPI_online.adoc[README_UPI_online]
 *** Versions tested: 4.6.42
 ** xref:README_UPI_airgapped.adoc[README_UPI_airgapped]
-*** Versions tested: 4.6.42
+*** Versions tested: 4.6.42, 4.8.11
 

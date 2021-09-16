@@ -1,6 +1,15 @@
 #functions related to openshift configuration
 
 #TODO: add functions here and add to omg scripts
+#for example: add machine set
+#add/remove LDAP
+#add/remove http pwd provider and add/remove users
+#sync LDAP groups
+#add roles to groups/users
+#NFS provisioner
+#certificate
+#backup/restore
+#place router pods UPI installations
 
 function openshiftCOnfigureCommandUsage
 {

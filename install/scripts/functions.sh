@@ -17,7 +17,7 @@ source scripts/common/openshift-configure.sh
 source scripts/online/ocp-ipi-install.sh
 source scripts/airgapped/openshift-images.sh
 source scripts/airgapped/dist-package.sh
-source scripts/airgapped/containers.sh
+source scripts/airgapped/download.sh
 source scripts/airgapped/bastion.sh
 source scripts/airgapped/registry.sh
 
