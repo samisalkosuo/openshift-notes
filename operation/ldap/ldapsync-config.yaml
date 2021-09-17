@@ -1,0 +1,26 @@
+#sample LDAPSyncConfig for OpenLDAP-demo https://github.com/samisalkosuo/openldap-docker
+kind: LDAPSyncConfig
+apiVersion: v1
+url: ldap://192.168.47.99:389
+bindDN: cn=admin,dc=farawaygalaxy,dc=net
+bindPassword: passw0rd
+insecure: true
+rfc2307:
+  groupsQuery:
+    baseDN: "ou=groups,dc=farawaygalaxy,dc=net"
+    filter: (objectclass=groupOfUniqueNames)
+    scope: sub
+    derefAliases: always
+    pageSize: 0
+  groupUIDAttribute: dn
+  groupNameAttributes: [ cn ]
+  groupMembershipAttributes: [ uniqueMember ]
+  usersQuery:
+    baseDN: "ou=users,dc=farawaygalaxy,dc=net"
+    scope: sub
+    derefAliases: always
+    pageSize: 0
+  userUIDAttribute: dn
+  userNameAttributes: [ uid ]
+  tolerateMemberNotFoundErrors: false
+  tolerateMemberOutOfScopeErrors: false

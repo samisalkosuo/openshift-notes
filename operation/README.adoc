@@ -140,12 +140,37 @@ Configure OpenShift to use LDAP identity provider:
 ** Login as LDAP user: `oc login -u <user>`
 ** `oc whoami`
 
-=== Cluster admin user
+=== LDAP sync
 
-By default, there are no cluster admin users when adding new identity provider.
+Existing LDAPs typically include users and groups and it would be good to have those groups and users in OpenShift too.
 
-* As cluster admin, such as _kubeadmin_, add new cluster admin user:
+https://access.redhat.com/documentation/en-us/openshift_container_platform/4.6/html/authentication_and_authorization/ldap-syncing[Syncing LDAP groups] does that.
+
+* Edit link:ldap/ldapsync-config.yaml[ldapsync-config.yaml] to match your LDAP.
+* Open terminal and login as cluster administrator.
+* To see what is being done, and to check any errors, execute:
+** `oc adm  groups sync --sync-config=ldapsync-config.yaml`
+** The command prints out what it is going to do without doing it. 
+** Output shows also any errors.
+* Confirm changes and execute:
+** `oc adm  groups sync --sync-config=ldapsync-config.yaml --confirm`
+** This command syncs LDAP with OpenShift.
+* Check groups and users:
+** `oc get groups`
+* Users in groups can login to OpenShift.
+
+Executing sync is one-time task so it might be good to have a https://kubernetes.io/docs/tasks/job/automated-tasks-with-cron-jobs/[CronJob] inside OpenShift or a cron job outside OpenShift to periodically sync groups.
+
+=== Cluster admins
+
+By default, there are no cluster admin users when adding new identity provider or syncing LDAP groups.
+
+Use existing cluster admin (kubeadmin for example) to add new cluster admins.
+
+* Add individual user as cluster admin:
 ** `oc adm policy add-cluster-role-to-user cluster-admin <user>`
+* Add a group as cluster-admins:
+**  oc adm policy add-cluster-role-to-group cluster-admin <group>`
 
 == HTPasswd identity provider
 
