@@ -10,21 +10,23 @@ The main purpose of this repository is to provide helpers to install OpenShift i
 == Architecture
 
 .OpenShift architecture
-image::images/OpenShift_architecture.svg[]
+image::images/OpenShift_architecture_20210917.svg[]
 
-The architecture of OpenShift in the context of this repository. Just a few comments about it:
+The architecture of OpenShift in the context of this repository.
 
-* Architecture shows an airgapped environment, but it can be made online environment by adding a gateway from internal OCP network to network with external access.
+* The architecture displays a typical UPI airgapped environment.
+** UPI online environment is the same except that there is access from internal network to Internet.
+** IPI architecture is similar.
 * Jump server is the one used to download OpenShift images and other software.
 ** Files from jump server are transferred to bastion.
 * Bastion server is the one that is used to install/manage OpenShift environment.
-* Bastion also includes all supporting services like DHCP.
-** All the services could be in dedicated servers, if so desired.
-* Load balancer is HAProxy in this environment.
+* Bastion may include other supporting services like DHCP.
+** All the services could be in dedicated servers.
+* Load balancer is http://gobetween.io/[Gobetween] in this context.
 ** Some other load balancer can be also used.
 ** Load balancer external host name(s) must be accessible from OpenShift internal network.
-* LDAP and NFS in bastion are used in this environment to provide those services.
-** In real life, LDAP would be enterprise LDAP somewhere and NFS would be a typical enterprise storage solution.
-** Or storage could be https://www.openshift.com/products/container-storage/[Red Hat OpenShift Container Storage].
+* Bastion may include optional services like LDAP and NFS.
+* Storage can be NFS, VSphere, local disks, or other solution.
+** Storage in this context is https://www.openshift.com/products/container-storage/[Red Hat OpenShift Data Foundation].
 * Two worker nodes are labeled so that ingress router will run on those nodes.
-* link:images/OCP_typical_VMWare.png[Typical architecture in VMWare ]
+* link:images/OCP_typical_VMWare.png[Typical architecture in VMWare].
