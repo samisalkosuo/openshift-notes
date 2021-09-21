@@ -17,13 +17,16 @@ function usage
   echo "  download-clients        - Download clients (oc, openshift-install, coredns, etc.)."
   echo "  download-ocp-images     - Download OpenShift images to directory."
   echo "  create-dist-package     - Create tar-package for distribution."
+  echo "  download-ocp-update     - Download OpenShift updated images to directory."
+  echo "  create-update-package   - Create update images tar-package to update airgapped OpenShift."
   echo ""
   echo "Commands (bastion):"
-  echo "  create-local-repo       - Create local dnf repository."
-  echo "  install-prereqs-bastion - Install prereqs from local repository."
-  echo "  create-mirror-registry  - Create mirror registry using registry-image and self-signed certificate."
-  echo "  upload-ocp-images       - Upload OpenShift images to mirror registry."
-  echo "  create-lb-dist-package  - Create tar-package for load balancer distribution."
+  echo "  create-local-repo            - Create local dnf repository."
+  echo "  install-prereqs-bastion      - Install prereqs from local repository."
+  echo "  create-mirror-registry       - Create mirror registry using registry-image and self-signed certificate."
+  echo "  upload-ocp-images            - Upload OpenShift images to mirror registry."
+  echo "  create-lb-dist-package       - Create tar-package for load balancer distribution."
+  echo "  upload-ocp-update <tar-file> - Upload OpenShift images in given tar-file to mirror registry."
   echo ""
 
   exit 1
@@ -61,10 +64,16 @@ case "$1" in
         downloadContainers
         ;;
     download-ocp-images)
-        mirrorOpenShiftImagesToFiles
+        mirrorOpenShiftImagesToFiles $__dist_dir/ocp-images
         ;;
     create-dist-package)
         createDistributionPackage
+        ;;
+    download-ocp-update)
+        mirrorOpenShiftImagesToFiles ~/dist-$OCP_VERSION
+        ;;
+    create-update-package)
+        packageOpenShiftUpdateImages ~/dist-$OCP_VERSION
         ;;
     create-local-repo)
         createLocalDNFRepository
@@ -74,6 +83,10 @@ case "$1" in
         ;;
     upload-ocp-images)
         mirrorOpenShiftImagesToMirrorRegistry
+        ;;
+    upload-ocp-update)
+        shift
+        mirrorOpenShiftUpdateToMirrorRegistry $*
         ;;
     create-lb-dist-package)
         createLoadbalancerDistributionPackage

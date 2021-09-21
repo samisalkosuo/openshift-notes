@@ -1,11 +1,19 @@
 function mirrorOpenShiftImagesToFiles
 {
-    local imageDir=$__dist_dir/ocp-images
-    mkdir -p $imageDir
-    echo "Mirroring images to ${imageDir}..."
+    if [[ "$1" == "" ]]; then
+      error "Download directory not available."
+    fi
+    local imageDir=$1
+    if [ -d "${imageDir}" ]
+    then
+        echo "Download directory ${imageDir} already exists. Will not download again."        
+    else
+        #does not exist, download
+        mkdir -p $imageDir
+        echo "Mirroring images to ${imageDir}..."
 
-    oc adm -a ${OCP_PULL_SECRET_FILE} release mirror --from=quay.io/${__ocp_product_repo}/${__ocp_release_name}:${__ocp_release} --to-dir=${imageDir} 2>&1 | tee $__dist_dir/mirror-output.txt
-
+        oc adm -a ${OCP_PULL_SECRET_FILE} release mirror --from=quay.io/${__ocp_product_repo}/${__ocp_release_name}:${__ocp_release} --to-dir=${imageDir} 2>&1 | tee $__dist_dir/mirror-output.txt
+    fi
 }
 
 function mirrorOpenShiftImagesToMirrorRegistry
@@ -25,4 +33,50 @@ function mirrorOpenShiftImagesToMirrorRegistry
 
     echo $mirrorCmd | sh
     
+}
+
+function mirrorOpenShiftUpdateToMirrorRegistry
+{
+    local tarFile=$1
+    local tarFilename=$(basename $tarFile)
+    if [ ! -f "$tarFile" ]; then
+        if [ ! -f "$tarFilename" ]; then
+            error "$tarFile does not exist."
+        fi
+    fi
+    echo "checking oc..."
+    oc whoami
+    echo "checking oc...ok."
+    echo "Mirroring update images from ${tarFile}..."
+    if [  -f "$tarFile" ]; then
+        mv $tarFile .
+    fi
+    local dirName=$(echo $tarFilename |sed "s/\.tar//g")
+    local ocpVersion=$(echo $dirName |sed "s/dist-//g")
+    if [ -d "$dirName" ]; then
+        echo "$dirName directory exists."
+    else
+        echo "Extracting ${tarFilename}..."
+        tar -xf $tarFilename
+    fi
+
+    local __registry=${__mirror_registry_base_name}.${OCP_DOMAIN}:${__mirror_registry_port}
+    local __local_registry=${__registry}/$__ocp_local_repository
+
+    #mirror images to registry
+    oc image mirror  -a ${OCP_PULL_SECRET_FILE} --from-dir=${dirName} "file://openshift/release:${ocpVersion}*" ${__local_registry}
+
+    echo "Applying image signature file..." 
+    #get latest yaml file in cnfig dire
+    local __signature_file=$(ls -t ${dirName}/config/signature*yaml | head -n1)
+    oc apply -f $__signature_file
+    
+    local __sha_sum=$(cat $__signature_file |jq -j .metadata.name)
+    local __sha_sum=$(echo $__sha_sum | sed "s/-/:/g")
+    
+    echo "Mirroring update images from ${tarFile}...done."
+    echo ""
+    echo "use the following command to upgrade OpenShift to version $OCP_VERSION:"
+    echo oc adm upgrade --allow-explicit-upgrade --to-image ${__local_registry}@${__sha_sum}
+
 }

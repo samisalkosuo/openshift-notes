@@ -225,24 +225,22 @@ This assumes that OpenShift was installed using instructions in this repository 
 *** For example: https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.6.7/release.txt[v4.6.7 can upgrade v4.6.1].
 * Login to jump server.
 * Go to _install_-directory.
-* Edit link:../install/environment.sh[environment.sh] and set _OCP_VERSION_ to the desired version.
-** Source new configuration: `source environment.sh`
-* Create package that includes images of the new OpenShift version:
-** `sh omg.sh create-update-package`
-** Image tar file is created with name `images_<OCP_VERSION>_.tar`
-* Copy/move tar-file to bastion-server.
-* Login to bastion-server as root.
-* Login to OpenShift-cluster as cluster admin.
-* Go to _dist_-directory (created during installation).
-* Edit link:../install/environment.sh[environment.sh] and set _OCP_VERSION_ to the desired version.
-** Source new configuration: `source environment.sh`
-* Extract image tar file and upload images to mirror registry.
-** `sh omg.sh upload-update-images`
-** Command extract mirror image tar file, pushes images to image registry and applies the mirrored release image signature config map to OpenShift cluster.
-* After command completes, an upgrade command is printed. For example:
-** `oc adm upgrade --allow-explicit-upgrade --to-image mirror-registry.forum.fi.ibm.com:5000/ocp/openshift4@sha256:6ddbf56b7f9776c0498f23a54b65a06b3b846c1012200c5609c4bb716b6bdcdf`
+* Edit link:../install/upi-environment.sh[upi-environment.sh] and set _OCP_VERSION_ to the desired version.
+** Source new configuration: `source upi-environment.sh`
+* Download OpenShift images:
+** `sh omg-upi-airgapped.sh download-ocp-update`
+** If result is not _Success_, download images again.
+* Package update images as tar-file:
+** `sh omg-upi-airgapped.sh create-update-package`
+** File `dist-$OCP_VERSION.tar` is created.
+* Copy/move file to bastion.
+* Login as cluster admin to OpenShift.
+* Upload images to mirror registry and apply image signature file:
+** `sh omg-upi-airgapped.sh upload-ocp-update <TARFILE>`
+* After command completes, upgrade commans is printed. For example:
+** `oc adm upgrade --allow-explicit-upgrade --to-image mirror-registry.forum.fi.ibm.com:5000/ocp/openshift4@sha256:4046047beed84bbba2c1762f130c402f9d05d584cb1dc3e8440f5809b2bb587e`
 * Optionally verify that images are in the registry:
-** `curl -u admin:passw0rd https://mirror-registry.forum.fi.ibm.com:5000/v2/ocp/openshift4/tags/list | jq`
+** `curl -u admin:passw0rd https://mirror-registry.forum.fi.ibm.com:5000/v2/ocp/openshift4/tags/list | jq .`
 * Execute command to start OpenShift upgrade.
 * Upgrade takes a moment...
 * Monitor upgrade process by any of the following:

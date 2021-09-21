@@ -101,3 +101,24 @@ function createOfflineRepository
     echo "creating local repository...done."
 
 }
+
+function packageOpenShiftUpdateImages
+{
+    local imageDir=$1
+    if [ ! -d "${imageDir}" ]
+    then
+      error "Download directory ${imageDir} does not exist."
+    fi
+
+    echo "Packaging OpenShift update directory ${imageDir}..."
+    local cdir=$(pwd)
+    local tarFile=${cdir}/dist-$OCP_VERSION.tar
+    cd ${imageDir}
+    local base=$(basename $PWD)
+    cd ..
+    tar -cf ${tarFile} ${base}/
+    cd $cdir
+    echo "Packaging OpenShift update directory ${imageDir}...done."
+    echo "Copy/move ${tarFile} to bastion."
+
+}
