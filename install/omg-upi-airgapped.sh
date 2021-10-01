@@ -19,6 +19,7 @@ function usage
   echo "  create-dist-package     - Create tar-package for distribution."
   echo "  download-ocp-update     - Download OpenShift updated images to directory."
   echo "  create-update-package   - Create update images tar-package to update airgapped OpenShift."
+  echo "  create-temp-registry    - Create and start temporary registry, required for operatorhub mirroring."
   echo ""
   echo "Commands (bastion):"
   echo "  create-local-repo            - Create local dnf repository."
@@ -90,6 +91,9 @@ case "$1" in
         ;;
     create-lb-dist-package)
         createLoadbalancerDistributionPackage
+        ;;
+    create-temp-registry)
+        createTemporaryRegistry
         ;;
     *)
         usage

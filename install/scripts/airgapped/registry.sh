@@ -198,3 +198,52 @@ EOF
 
 }
 
+function createTemporaryRegistry
+{
+    #temp registry to push custom operatorhub index image for mirroring images
+    #21.9.2021 mirroring does not work with local image, image must be in a registry
+    echo "creating and starting temporary registry..."
+    local __registry_host_name=temp-registry
+    local __registry_dir=/opt/temp-registry
+    local __registry_user_name=$__mirror_registry_user
+    local __registry_user_password=$__mirror_registry_password
+    local __registry_port=6000
+    local __add_to_hosts_file=yes
+    local __omg_cert_dir=$__certificates_dir
+    local __registry_crt_file=/tmp/temp-registry.crt
+    local __registry_key_file=/tmp/temp-registry.key
+
+    #create temp certificate
+    openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+  -keyout ${__registry_key_file} -out ${__registry_crt_file} -subj "/CN=temp-registry" \
+  -addext "subjectAltName=DNS:temp-registry,DNS:localhost,IP:127.0.0.1"
+    
+    #create registry directories
+    mkdir -p ${__registry_dir}/{auth,certs,data}
+
+    #create registry user to registry dir
+    htpasswd -bBc ${__registry_dir}/auth/htpasswd ${__registry_user_name} ${__registry_user_password}
+
+    #certificate and key file are copied to registry certs-dire as domain.crt and domain.key
+    cp ${__registry_crt_file} ${__registry_dir}/certs/domain.crt
+    cp ${__registry_key_file} ${__registry_dir}/certs/domain.key
+
+    
+    # if [[ "$__add_to_hosts_file" == "yes" ]]; then
+    #     echo "adding \"127.0.01  ${__registry_host_name}\" to /etc/hosts..."
+    #     echo "127.0.0.1 ${__registry_host_name}" >> /etc/hosts
+    # fi
+
+    echo "starting temporary registry..."
+    /usr/bin/podman stop $__registry_host_name &> /dev/null || true
+    /usr/bin/podman run -d --rm --name $__registry_host_name -p ${__registry_port}:5000 -v ${__registry_dir}/data:/var/lib/registry:z -v ${__registry_dir}/auth:/auth:z -e REGISTRY_STORAGE_DELETE_ENABLED=true -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v ${__registry_dir}/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
+
+    echo "log in to temporary registry..."
+    /usr/bin/podman login -u ${__registry_user_name} -p ${__registry_user_password} --tls-verify=false localhost:${__registry_port}
+
+    echo "test registry using command:"
+    echo "  curl -k -u ${__registry_user_name}:${__registry_user_password} https://localhost:${__registry_port}/v2/_catalog"
+
+    echo "creating and starting temporary registry...done."
+
+}
