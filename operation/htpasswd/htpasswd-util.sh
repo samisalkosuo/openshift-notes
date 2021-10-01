@@ -47,7 +47,7 @@ function create
 
   #get existing identity providers
   local __existing_providers=existing_providers.yaml
-  oc get oauth cluster -o json | jq .spec.identityProviders | yq e -P - | sed 's/^/\ \ /g' > $__existing_providers
+  oc get oauth cluster -o json | jq .spec.identityProviders | yq e -P - | sed 's/^/\ \ /g' | sed "s/null//g" > $__existing_providers
   local __htpasswd_patch_file=htpasswd_patch.yaml
   cat > $__htpasswd_patch_file << EOF
 spec:

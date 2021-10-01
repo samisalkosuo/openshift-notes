@@ -33,7 +33,7 @@ oc create secret generic ${__ldap_name}-secret --from-literal=bindPassword=${__l
 
 #get existing identity providers
 __existing_providers=existing_providers.yaml
-oc get oauth cluster -o json | jq .spec.identityProviders | yq e -P - | sed 's/^/\ \ /g' > $__existing_providers
+oc get oauth cluster -o json | jq .spec.identityProviders | yq e -P - | sed 's/^/\ \ /g' | sed "s/null//g" > $__existing_providers
 
 __ldap_patch_file=ldap_patch.yaml
 echo "Creating LDAP identity provider patch YAML..."
@@ -57,6 +57,7 @@ spec:
       insecure: ${__ldap_insecure}
       url: "ldap://${__ldap_server}:${__ldap_server_port}/${__ldap_basedn}?${__ldap_search_attribute}?sub?${__ldap_filter}" 
 EOF
+
 cat $__existing_providers >> ${__ldap_patch_file}
 
 echo "Patching cluster OAuth..."

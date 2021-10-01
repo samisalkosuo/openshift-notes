@@ -170,7 +170,7 @@ Use existing cluster admin (kubeadmin for example) to add new cluster admins.
 * Add individual user as cluster admin:
 ** `oc adm policy add-cluster-role-to-user cluster-admin <user>`
 * Add a group as cluster-admins:
-**  oc adm policy add-cluster-role-to-group cluster-admin <group>`
+** `oc adm policy add-cluster-role-to-group cluster-admin <group>`
 
 == HTPasswd identity provider
 
