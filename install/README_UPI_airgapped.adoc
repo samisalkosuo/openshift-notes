@@ -51,6 +51,7 @@ Follow the sections below to do the first major step.
 ** `sh omg-upi-airgapped.sh download-clients`
 * Download OpenShift images:
 ** `sh omg-upi-airgapped.sh download-ocp-images`
+** If there are any errors, delete images directory and execute the command again.
 
 
 == Distribution package

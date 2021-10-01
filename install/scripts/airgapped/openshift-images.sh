@@ -6,7 +6,8 @@ function mirrorOpenShiftImagesToFiles
     local imageDir=$1
     if [ -d "${imageDir}" ]
     then
-        echo "Download directory ${imageDir} already exists. Will not download again."        
+        echo "Download directory ${imageDir} already exists. Will not download again."
+        echo "'rm -rf ${imageDir}' if you want to download images again."
     else
         #does not exist, download
         mkdir -p $imageDir
