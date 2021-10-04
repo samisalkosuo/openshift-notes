@@ -42,9 +42,9 @@ After=network.target remote-fs.target nss-lookup.target
 Type=simple
 PIDFile=/run/gobetween.pid
 ExecStart=/usr/local/bin/gobetween -c /etc/gobetween/config.toml --pidfile /run/gobetween.pid
-ExecStop=/bin/kill -s TERM $MAINPID
 PrivateTmp=true
 LimitNOFILE=infinity
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
