@@ -8,11 +8,12 @@ mkdir -p ${__omg_runtime_dir}
 
 #OpenShift install dir, used while installing OpenShift
 #holds kubeconfig authentication file in auth-subdirectory
-__openshift_install_dir=~/ocp-install
+__dir_suffix=${OCP_CLUSTER_NAME}.${OCP_DOMAIN}
+__openshift_install_dir=~/ocp-install-${__dir_suffix}
 
-__openshift_ipi_install_dir=~/ocp-ipi-install
+__openshift_ipi_install_dir=~/ocp-ipi-install-${__dir_suffix}
 
-__dist_dir=~/ocp-dist
+__dist_dir=~/ocp-dist-${__dir_suffix}
 
 #SSH key file
 __ssh_type=rsa

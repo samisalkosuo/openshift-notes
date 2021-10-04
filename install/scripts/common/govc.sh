@@ -253,16 +253,23 @@ function createSingleVM
         local ram=$3
         local disk=$4
         local vmName=${hostInfo[0]}-$OCP_CLUSTER_NAME
-        echo "Creating $vmName... Cores ${cpu}, RAM ${ram}, disk ${disk}..."
-        govc vm.create -m ${ram} -c ${cpu} -disk ${disk} -g coreos64Guest -on=false -net.adapter vmxnet3 $vmName
-        echo "Creating $vmName... Cores ${cpu}, RAM ${ram}, disk ${disk}...done."
-        echo "Settings disk.enableUUID=TRUE..."
-        govc vm.change -e="disk.enableUUID=1" -vm=${vmName}
-        echo "Settings disk.enableUUID=TRUE...done."
-        echo "Snapshotting..."
-        govc snapshot.create -vm $vmName -d "Empty VM, no OS" empty-vm
-        echo "Snapshotting...done."
-        echo "Creating $vmName...done."
+        local vmInfo=$(govc vm.info $vmName)
+        if [[ "${vmInfo}" == "" ]]; then
+            #does not exist create it
+            echo "Creating $vmName... Cores ${cpu}, RAM ${ram}, disk ${disk}..."
+            govc vm.create -m ${ram} -c ${cpu} -disk ${disk} -g coreos64Guest -on=false -net.adapter vmxnet3 $vmName
+            echo "Creating $vmName... Cores ${cpu}, RAM ${ram}, disk ${disk}...done."
+            echo "Settings disk.enableUUID=TRUE..."
+            govc vm.change -e="disk.enableUUID=1" -vm=${vmName}
+            echo "Settings disk.enableUUID=TRUE...done."
+            echo "Snapshotting..."
+            govc snapshot.create -vm $vmName -d "Empty VM, no OS" empty-vm
+            echo "Snapshotting...done."
+            echo "Creating $vmName...done."
+        else
+            echo "$vmName already exists."
+
+        fi
     fi
 }
 
