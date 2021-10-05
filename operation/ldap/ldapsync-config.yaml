@@ -1,4 +1,12 @@
 #sample LDAPSyncConfig for OpenLDAP-demo https://github.com/samisalkosuo/openldap-docker
+#
+#sync: 
+#oc adm  groups sync --sync-config=ldapsync-config.yaml --confirm
+#
+#set group as cluster admin:
+#oc adm policy add-cluster-role-to-group cluster-admin jedi
+#
+#
 kind: LDAPSyncConfig
 apiVersion: v1
 url: ldap://192.168.47.99:389
