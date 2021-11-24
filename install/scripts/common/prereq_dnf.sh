@@ -30,6 +30,8 @@ __prereq_packages="podman \
                    ansible \
                    expect \
                    ntfs-3g \
+                   unzip \
+                   skopeo \
                    "
 
 function installPrereqs

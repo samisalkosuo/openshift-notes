@@ -50,8 +50,8 @@ subnet ${OCP_DHCP_NETWORK} netmask ${OCP_DHCP_NETWORK_MASK} {
     option ntp-servers         ${OCP_DHCP_NTP_SERVER};
     option domain-name-servers ${OCP_DHCP_DNS_SERVER};
     option time-offset         7200;
-    default-lease-time         720000000;
-    max-lease-time             7200000000;
+    default-lease-time         7200;
+    max-lease-time             86400;
     
     next-server                ${OCP_DHCP_SERVER_IP_ADDRESS};
     filename                   "lpxelinux.0";

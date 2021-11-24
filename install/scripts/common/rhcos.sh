@@ -37,4 +37,7 @@ function downloadRHCOSBinaries
     echo "Downloading RHCOS ${__version} rootfs to ${__dir}..."
     downloadFile rhcos-${__version}-${__architecture}-live-rootfs.${__architecture}.img $__dir
 
+    echo "Downloading RHCOS ${__version} OVA to ${__dir}..."
+    downloadFile rhcos-${__version}-${__architecture}-vmware.${__architecture}.ova $__dir
+    
 }
