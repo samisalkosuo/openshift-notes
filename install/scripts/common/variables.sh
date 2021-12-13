@@ -29,7 +29,7 @@ __ocp_release_name="ocp-release"
 #container images used or potentially used in airgapped bastion
 __container_images="docker.io/library/registry:2 \
                     docker.io/osixia/openldap:1.5.0 \
-                    python:3.9.7-alpine3.14 \
+                    docker.io/library/python:3.9.7-alpine3.14 \
                     k8s.gcr.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2"
 
 __container_image_dir=$__dist_dir/images_containers

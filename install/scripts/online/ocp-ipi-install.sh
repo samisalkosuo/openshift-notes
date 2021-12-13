@@ -74,6 +74,7 @@ platform:
     password: ${OCP_VSPHERE_PASSWORD}
     cluster: ${OCP_VSPHERE_CLUSTER}
     datacenter: ${OCP_VSPHERE_DATACENTER}
+    folder: ${OCP_VSPHERE_FOLDER}
     defaultDatastore: ${OCP_VSPHERE_DATASTORE}
     network: ${OCP_VSPHERE_NETWORK}
     apiVIP: ${OCP_VSPHERE_VIRTUAL_IP_API}

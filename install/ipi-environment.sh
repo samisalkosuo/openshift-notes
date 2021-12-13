@@ -11,6 +11,7 @@ export OCP_VSPHERE_VIRTUAL_IP_API=
 export OCP_VSPHERE_VIRTUAL_IP_INGRESS=
 export OCP_VSPHERE_CLUSTER=
 export OCP_VSPHERE_DATACENTER=
+export OCP_VSPHERE_FOLDER=
 export OCP_VSPHERE_DATASTORE=
 export OCP_VSPHERE_NETWORK=
 
@@ -32,6 +33,9 @@ export OCP_VERSION=4.6.42
 export OCP_DOMAIN=forum.fi.ibm.com
 export OCP_CLUSTER_NAME=ocp07
 
+#network CIDR for OCP nodes, used in install-config.yaml
+export OCP_NODE_NETWORK_CIDR=192.168.47.0/24
+
 #Bastion IP address, used in other variables, for example as NTP/DNS server
 export OCP_NODE_BASTION_IP_ADDRESS=192.168.47.99
 
@@ -48,8 +52,6 @@ lab43 10.31.3.43; \
 lab44 10.31.3.44; \
 lab45 10.31.3.45;\
 "
-#network CIDR for OCP nodes, used in install-config.yaml
-export OCP_NODE_NETWORK_CIDR=192.168.47.0/24
 
 #change to correct server address
 #these are used by DHCP and OpenShift cluster

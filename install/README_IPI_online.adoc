@@ -25,10 +25,10 @@ Before installing OpenShift, prepare yourself.
 * Login to bastion as root.
 * Clone or download this repo.
 * https://console.redhat.com/openshift/downloads[Download _pull-secret.json_ from Red Hat].
-* Set environment variables in link:ipi_environment.sh[ipi_environment.sh]
+* Set environment variables in link:ipi-environment.sh[ipi-environment.sh]
 ** Variables include VSphere configuration, DHCP and network configuration, and others.
 ** Be mindful and set all relevant variables.
-** Source variables: `source ipi_environment.sh`
+** Source variables: `source ipi-environment.sh`
 * Execute helper script,`sh omg-ipi.sh`, to see help.
 
 == Install tools and clients
@@ -109,7 +109,7 @@ Before installing OpenShift, open required ports in Bastion and download VCenter
 
 == Install OpenShift
 
-OpenShift installation uses _openshift-install_-command and installation uses configuration given as environment variables in link:ipi_environment.sh[ipi_environment.sh].
+OpenShift installation uses _openshift-install_-command and installation uses configuration given as environment variables in link:ipi-environment.sh[ipi-environment.sh].
 
 * Start install:
 ** `sh omg-ipi.sh create`

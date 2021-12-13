@@ -54,8 +54,8 @@ function createDistributionPackage
     #save container images
     downloadContainers
     echo "Saving container images..."
-    podman images |grep -v "none\|TAG" |awk -v dir="${imageDir}" '{print "podman save -o " dir "/img_"  $3".tar " $1 ":" $2}' |sh     
-
+    podman images |grep -v "none\|TAG" |awk -v dir="${imageDir}" '{print "podman save -o " dir "/img_"  $3".tar " $1 ":" $2 " || true"}' |sh
+    
     #copy this directory to script dir 
     echo "Copying these scripts..."
     cp -R . $scriptDir/

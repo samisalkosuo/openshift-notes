@@ -24,7 +24,7 @@ function downloadGitRepositories
     cd $__gitrepo_dir
     for repo in "${repos[@]}"
     do
-        git clone $repo
+        git clone $repo || true
     done
     cd $cdir
     echo "Dowloading git repositories...done."
