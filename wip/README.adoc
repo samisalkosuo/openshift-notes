@@ -1,3 +1,5 @@
 = Work in progress
 
 Work in progress directory for scripts and stuff.
+
+* link:prepare-airgap-install.adoc/[Prepare OpenShift airgapped install] has some steps to prepare for airgapped OpenShift installation.

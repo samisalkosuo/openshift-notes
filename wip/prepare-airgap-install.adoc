@@ -1,0 +1,135 @@
+= Prepare OpenShift airgapped install
+:toc: left
+:toc-title: Table of Contents
+
+This document describes some of the steps required to prepare for OpenShift airgapped install.
+
+Tested with Rocky Linux 8.4. 
+
+The steps should work with any RHEL, CentOS or Rocky Linux 8.x
+
+== Prepare
+
+* Clone this repository:
+** `git clone https://github.com/samisalkosuo/openshift-notes`
+** Directory `wip` includes scripts used in downloading/mirroring.
+** These instructions assume that `wip`-directory is the working directory.
+* Download openshift-notes files:
+** `wget https://github.com/samisalkosuo/openshift-notes/archive/refs/heads/main.zip`
+** Copy `main.zip` to airgapped server.
+
+== Offline repository
+
+If airgapped Linux does not have dnf-repository configured, download packages in jump-server.
+
+* Edit `local-repo-helper.sh` script and add all required packages.
+* Create repository-tar file:
+** `sh local-repo-helper.sh create-offline`
+* Copy `offline-repository.tar`to airgapped server.
+* Create local repo in airgapped server:
+** `sh local-repo-helper.sh create-local`
+* Install all packages:
+** `sh local-repo-helper.sh install-all`
+
+== OpenShift
+
+=== Self-signed CA certificate
+
+Self-signed certificates are used in Quay-registry.
+
+Create CA-certificate (required by download script):
+
+* Create CA for given domain:
+** `sh self-signed-cert.sh create-ca-cert forum.lab`
+** where `forum.lab` is domain for CA. Use your own.
+* CA certificate can be also created in airgapped server when needed for registry.
+
+=== Edit versions
+
+* Open `omg.sh`
+* Edit variables.
+** Especially OCP_PULL_SECRET_FILE, OCP and RHCOS versions.
+
+=== RHCOS
+
+* Download RHCOS files and other files needed for web server and TFTP:
+** `sh omg.sh prepare-httpd-tftp-jump`
+* Copy `dist-omg-httpd.tar` to airgapped server.
+
+=== Images and clients
+
+* Download OpenShift clients and images:
+** `sh omg.sh prepare-bastion-jump`
+** Download includes oc, opm, openshift-install and cloudctl.
+* Copy `dist-omg-bastion.tar` to airgapped server.
+
+== OperatorHub
+
+MCM requires Advanced Cluster Management. Recommended storage is OpenShift Data Foundation (or OpenShift Container Storage).
+Both are available in OperatorHub.
+
+* Copy pull-secret.json as podman login file:
+** `cp /root/pull-secret.json ${XDG_RUNTIME_DIR}/containers/auth.json`
+* Verify that login is successful:
+** `podman login registry.redhat.io`
+* Export variable:
+** `export REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json`
+* Index image that is available in a registry is required when mirroring OperatorHub content.
+** Create local registry:
+*** `sh temp-registry.sh create`
+*** Local registry:
+**** `localhost:6000`
+** Start local registry:
+*** `sh temp-registry.sh start`
+* Set OCP version:
+** `export VERSION=v4.8`
+* Pull index image:
+** `podman pull registry.redhat.io/redhat/redhat-operator-index:${VERSION}`
+* Create directory:
+** `mkdir operatorhub && cd operatorhub`
+
+=== OpenShift Data Foundation (OCS)
+
+* Prune index, include only OCS:
+** `opm index prune -f registry.redhat.io/redhat/redhat-operator-index:${VERSION} -p local-storage-operator,ocs-operator -t localhost:6000/redhat-operator-index-ocs:${VERSION}`
+* Push to local registry:
+** `podman push localhost:6000/redhat-operator-index-ocs:${VERSION}`
+* Mirror images to files:
+** `oc adm catalog mirror localhost:6000/redhat-operator-index-ocs:${VERSION} file:///ocs -a ${REG_CREDS}  2>&1 | tee mirror-output-ocs.txt`
+
+=== Advanced Cluster Management (ACM)
+
+* Prune index, include only ACM:
+** `opm index prune -f registry.redhat.io/redhat/redhat-operator-index:${VERSION} -p advanced-cluster-management,klusterlet-product -t localhost:6000/redhat-operator-index-acm:${VERSION}`
+* Push to local registry:
+** `podman push localhost:6000/redhat-operator-index-acm:${VERSION}`
+* Mirror images to files:
+** `oc adm catalog mirror localhost:6000/redhat-operator-index-acm:${VERSION} file:///acm -a ${REG_CREDS}  2>&1 | tee mirror-output-acm.txt`
+
+=== Package OperatorHub images
+
+* After images have been downloaded, package them as tar.
+* Tar operatorhub-directory:
+** `tar -cf operatorhub.tar operatorhub/`
+* Copy to airgapped server.
+
+== Quay-registry
+
+Project Quay is open source Quay registry. It is provided as container images. See also https://github.com/quay/quay/blob/master/docs/quick-local-deployment.md.
+
+* Download required container images:
+** save docker images (use podman or docker)
+```
+mkdir quay-images
+podman pull docker.io/library/postgres:10.12
+podman save docker.io/library/postgres:10.12 > quay-images/postgres-10.12.tar
+podman pull docker.io/library/redis:5.0.7
+podman save docker.io/library/redis:5.0.7 > quay-images/redis-5.0.7.tar
+podman pull quay.io/projectquay/quay:3.6.2
+podman save quay.io/projectquay/quay:3.6.2 > quay-images/quay-3.6.2.tar
+```
+* Package files:
+** `tar -cf quay-images.tar quay-images/`
+* Copy tar to airgapped registry server.
+
+
