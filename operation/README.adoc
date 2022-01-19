@@ -250,6 +250,10 @@ This assumes that OpenShift was installed using instructions in this repository 
 ** `oc get clusteroperators`
 ** `oc get nodes`
 
+== Disable the default OperatorHub sources
+
+* Disable OperatorHub sources in airgapped installation:
+** `oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'`
 
 == Add worker node
 
