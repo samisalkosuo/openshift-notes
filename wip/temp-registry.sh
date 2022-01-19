@@ -15,8 +15,8 @@ function usage
   echo ""
   echo "Commands:"
   echo "  create     - Create local temporary registry."
-  echo "  start      - Star local temporary registry."
-  echo "  stop       - Star local temporary registry."
+  echo "  start      - Start local temporary registry."
+  echo "  stop       - Stop local temporary registry."
   exit 1
 }
 
@@ -52,7 +52,7 @@ function createTemporaryRegistry
 
     /usr/bin/podman pull $REGISTRY_IMAGE
 
-    echo "adding temp registry certificat as trusted"
+    echo "adding temp registry certificate as trusted"
     cp ${__registry_crt_file} /etc/pki/ca-trust/source/anchors/
     update-ca-trust extract
 
@@ -82,7 +82,7 @@ function startRegistry
     /usr/bin/podman login -u ${REGISTRY_USER_NAME} -p ${REGISTRY_USER_PASSWORD} localhost:${REGISTRY_PORT}
 
     echo "test registry using command:"
-    echo "  curl -k -u ${REGISTRY_USER_NAME}:${REGISTRY_USER_PASSWORD} https://localhost:${REGISTRY_PORT}/v2/_catalog"
+    echo "  curl -u ${REGISTRY_USER_NAME}:${REGISTRY_USER_PASSWORD} https://localhost:${REGISTRY_PORT}/v2/_catalog"
 
 }
 

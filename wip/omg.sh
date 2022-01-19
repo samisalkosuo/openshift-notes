@@ -45,6 +45,19 @@ OCP_THREE_NODE_CLUSTER=no
 SSH_TYPE=rsa
 SSH_KEY_FILE=~/.ssh/id_rsa
 
+KUBETERMINAL_TAG=latest
+
+#client versions
+
+#IBM Cloud CLI (cloudctl) version
+#check latest version from https://github.com/IBM/cloud-pak-cli/releases
+CLOUDCTL_VERSION=3.12.1
+
+#grpcurl version
+#check latest version from https://github.com/fullstorydev/grpcurl/releases/
+GRPCURL_VERSION=1.8.5
+
+
 function usage
 {
   echo "OpenShift installer helper for airgapped OpenShift installations."
@@ -271,17 +284,6 @@ function configureHTTPServer
   setupTFTPServerAirgapped
 }
 
-#client versions
-
-#IBM Cloud CLI (cloudctl) version
-#check latest version from https://github.com/IBM/cloud-pak-cli/releases
-export CLOUDCTL_VERSION=3.12.1
-
-#grpcurl version
-#check latest version from https://github.com/fullstorydev/grpcurl/releases/
-export GRPCURL_VERSION=1.8.5
-
-
 function downloadOpenShiftClient
 {
     local __file=$1
@@ -321,10 +323,11 @@ function downloadCloudctl
 function downloadKubeterminal
 {
     echo "Downloading kubeterminal.bin..."
-    podman create -it --name kubeterminal docker.io/kazhar/kubeterminal bash
+    podman pull docker.io/kazhar/kubeterminal:$KUBETERMINAL_TAG
+    podman create -it --name kubeterminal docker.io/kazhar/kubeterminal:$KUBETERMINAL_TAG bash
     podman cp kubeterminal:/kubeterminal kubeterminal.bin
     podman rm -fv kubeterminal
-    podman rmi kazhar/kubeterminal
+    podman rmi kazhar/kubeterminal:$KUBETERMINAL_TAG
     echo "Copying kubeterminal.bin to /usr/local/bin/..."
     mv kubeterminal.bin /usr/local/bin/
     echo "Downloading kubeterminal.bin...done."
