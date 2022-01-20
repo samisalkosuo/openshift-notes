@@ -7,7 +7,7 @@ CLUSTER_NAME=ocp
 #OCP version to install/upgrade
 #check https://mirror.openshift.com/pub/openshift-v4/clients/ocp/
 #for desired version 
-OCP_VERSION=4.8.19
+OCP_VERSION=4.8.24
 
 #OCP RHCOS version to be used to download RHCOS images
 #Find correct RHCOS major release and version from
