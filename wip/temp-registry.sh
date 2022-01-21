@@ -1,7 +1,7 @@
 #/bin/bash
 
 REGISTRY_NAME=temp-registry
-REGISTRY_DIR=/opt/temp-registry
+REGISTRY_DIR=$(pwd)/temp-registry
 REGISTRY_USER_NAME=admin
 REGISTRY_USER_PASSWORD=passw0rd
 REGISTRY_PORT=6000
