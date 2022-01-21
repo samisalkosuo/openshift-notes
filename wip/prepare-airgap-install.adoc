@@ -76,11 +76,11 @@ Both are available in OperatorHub.
 ** `export REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json`
 * Index image that is available in a registry is required when mirroring OperatorHub content.
 ** Create local registry:
-*** `sh temp-registry.sh create`
+*** `sh local-registry.sh create`
 *** Local registry:
 **** `localhost:6000`
 ** Start local registry:
-*** `sh temp-registry.sh start`
+*** `sh local-registry.sh start`
 * Set OCP version:
 ** `export VERSION=v4.8`
 * Pull index image:

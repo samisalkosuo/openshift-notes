@@ -1,7 +1,7 @@
 #/bin/bash
 
-REGISTRY_NAME=temp-registry
-REGISTRY_DIR=$(pwd)/temp-registry
+REGISTRY_NAME=local-registry
+REGISTRY_DIR=$(pwd)/local-registry
 REGISTRY_USER_NAME=admin
 REGISTRY_USER_PASSWORD=passw0rd
 REGISTRY_PORT=6000
@@ -9,14 +9,14 @@ REGISTRY_IMAGE=docker.io/library/registry:2
 
 function usage
 {
-  echo "Temp registry helper."
+  echo "Local registry helper."
   echo ""
   echo "Usage: $0 <command>"
   echo ""
   echo "Commands:"
-  echo "  create     - Create local temporary registry."
-  echo "  start      - Start local temporary registry."
-  echo "  stop       - Stop local temporary registry."
+  echo "  create     - Create local registry."
+  echo "  start      - Start local registry."
+  echo "  stop       - Stop local registry."
   exit 1
 }
 
@@ -29,9 +29,9 @@ function error
 set -e 
 
 #temp registry main use case is to push custom operatorhub index image for mirroring images
-function createTemporaryRegistry
+function createLocalRegistry
 {
-    echo "creating temporary registry..."
+    echo "creating local registry..."
     local __registry_crt_file=/tmp/temp-registry.crt
     local __registry_key_file=/tmp/temp-registry.key
 
@@ -52,17 +52,17 @@ function createTemporaryRegistry
 
     /usr/bin/podman pull $REGISTRY_IMAGE
 
-    echo "adding temp registry certificate as trusted"
+    echo "adding local registry certificate as trusted"
     cp ${__registry_crt_file} /etc/pki/ca-trust/source/anchors/
     update-ca-trust extract
 
-    echo "creating temporary registry...done."
+    echo "creating local registry...done."
 
 }
 
 function startRegistry
 {
-    echo "starting temporary registry..."
+    echo "starting local registry..."
     /usr/bin/podman run \
                     -d --rm \
                     --name $REGISTRY_NAME \
@@ -78,7 +78,7 @@ function startRegistry
                     -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
                     ${REGISTRY_IMAGE}
 
-    echo "log in to temporary registry..."
+    echo "log in to local registry..."
     /usr/bin/podman login -u ${REGISTRY_USER_NAME} -p ${REGISTRY_USER_PASSWORD} localhost:${REGISTRY_PORT}
 
     echo "test registry using command:"
@@ -88,7 +88,7 @@ function startRegistry
 
 function stopRegistry
 {
-    echo "stopping temporary registry..."
+    echo "stopping local registry..."
     /usr/bin/podman stop $REGISTRY_NAME
 
 }
@@ -96,7 +96,7 @@ function stopRegistry
 
 case "$1" in
     create)
-        createTemporaryRegistry
+        createLocalRegistry
         ;;
     start)
         startRegistry
