@@ -23,12 +23,14 @@ The steps should work with any RHEL, CentOS or Rocky Linux 8.x
 If airgapped Linux does not have dnf-repository configured, download packages in jump-server.
 
 * Edit `local-repo-helper.sh` script and add all required packages.
+* Install all packages in jump server:
+** `sh local-repo-helper.sh install-all`
 * Create repository-tar file:
 ** `sh local-repo-helper.sh create-offline`
 * Copy `offline-repository.tar` to airgapped server.
 * Create local repo in airgapped server:
 ** `sh local-repo-helper.sh create-local`
-* Install all packages:
+* Install all packages in airgapped server:
 ** `sh local-repo-helper.sh install-all`
 
 == OpenShift
