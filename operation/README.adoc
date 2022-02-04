@@ -316,6 +316,20 @@ It is possible to place pods in specific nodes using node selectors. Here we pla
 * Delete router pods to reschedule:
 ** `oc -n openshift-ingress get pods --no-headers |awk '{print "oc -n openshift-ingress delete pod " $1}' | sh`
 
+== Label nodes
+
+* Label nodes as infra-node:
+** `oc label node <node> node-role.kubernetes.io/infra=""`
+* Remove label, for example worker-label:
+** `oc label node <node> node-role.kubernetes.io/worker-`
+
+For example, label and taint dedicated storage (OpenShift Data Foundation) nodes:
+```
+oc label node storage01 node-role.kubernetes.io/infra=""
+oc label node storage01 cluster.ocs.openshift.io/openshift-storage=""
+oc adm taint node storage01 node.ocs.openshift.io/storage="true":NoSchedule
+```
+
 == Set/unset master nodes as workers
 
 When selecting three-node cluster, master-nodes are also worker-nodes. If adding later new workers, it might be desirable to remove worker role from master-nodes.
