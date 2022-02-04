@@ -25,7 +25,7 @@ If airgapped Linux does not have dnf-repository configured, download packages in
 * Edit `local-repo-helper.sh` script and add all required packages.
 * Create repository-tar file:
 ** `sh local-repo-helper.sh create-offline`
-* Copy `offline-repository.tar`to airgapped server.
+* Copy `offline-repository.tar` to airgapped server.
 * Create local repo in airgapped server:
 ** `sh local-repo-helper.sh create-local`
 * Install all packages:
@@ -113,7 +113,23 @@ Both are available in OperatorHub.
 ** `tar -cf operatorhub.tar operatorhub/`
 * Copy to airgapped server.
 
-== Quay-registry
+== Registry
+
+Airgapped OpenShift requires a container registry. It can be something that already exists or it can be installed before installing OpenShift. 
+
+Ttwo of many possible registry options are below.
+
+=== OpenShift mirror registry
+
+Red Hat has provided mirror registry based on Quay to help with OpenShift installations in airgapped environments.
+See blog post: https://cloud.redhat.com/blog/introducing-mirror-registry-for-red-hat-openshift.
+
+* Check version from https://mirror.openshift.com/pub/openshift-v4/clients/mirror-registry/.
+* Download v1.0 using:
+** ` wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/mirror-registry/1.0/mirror-registry.tar.gz`
+* Copy tar-file to airgapped server.
+
+=== Quay-registry
 
 Project Quay is open source Quay registry. It is provided as container images. See also https://github.com/quay/quay/blob/master/docs/quick-local-deployment.md.
 
@@ -131,5 +147,4 @@ podman save quay.io/projectquay/quay:3.6.2 > quay-images/quay-3.6.2.tar
 * Package files:
 ** `tar -cf quay-images.tar quay-images/`
 * Copy tar to airgapped registry server.
-
 
