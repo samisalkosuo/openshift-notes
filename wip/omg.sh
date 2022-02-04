@@ -57,6 +57,8 @@ CLOUDCTL_VERSION=3.12.1
 #check latest version from https://github.com/fullstorydev/grpcurl/releases/
 GRPCURL_VERSION=1.8.5
 
+#set /usr/local/bin specifically to PATH
+export PATH=/usr/local/bin:$PATH
 
 function usage
 {

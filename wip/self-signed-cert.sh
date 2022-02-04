@@ -9,6 +9,8 @@ SELFSIGNEDCERT_CERTIFICATE_EMAIL_ADDRESS_NAME=mr.smith
 #CA cert organization
 SELFSIGNED_CACERT_ORGANIZATION="Sami Salkosuo"
 
+#if yes, copy CA_domain.crt to ca.crt
+COPY_CA_CERT_AS_CA_CRT=yes
 
 __cert_dir="$(pwd)/certs"
 __tmp_cert_dir=$__cert_dir/tmp
@@ -119,6 +121,10 @@ EOF
 
     local __ca_file_name=$__cert_dir/CA_${__domain}
     openssl req -x509 -config ${__ca_cert_config_file} -extensions server_exts -nodes -days $SELFSIGNEDCERT_CERTIFICATE_VALID_DAYS -newkey rsa:4096 -keyout ${__ca_file_name}.key -out ${__ca_file_name}.crt
+
+    if [[ "$COPY_CA_CERT_AS_CA_CRT" == "yes" ]]; then
+      cp ${__ca_file_name}.crt $__cert_dir/ca.crt
+    fi
 
 
     echo ""
