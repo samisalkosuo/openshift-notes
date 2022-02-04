@@ -29,6 +29,10 @@ PREREQ_PACKAGES="jq \
                 skopeo \
                 syslinux \
                 haproxy \
+                yum-utils \
+                createrepo \
+                libmodulemd \
+                modulemd-tools
                 "
 
 
