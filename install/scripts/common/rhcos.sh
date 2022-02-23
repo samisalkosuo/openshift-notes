@@ -12,7 +12,8 @@ function downloadFile
   if [ -f ${dir}/$1 ]; then
     echo "${dir}/$1 already downloaded."
   else
-    wget --directory-prefix=${dir} ${dlurl}/$1
+    #wget --directory-prefix=${dir} ${dlurl}/$1
+    curl  ${dlurl}/$1 > ${dir}/$1
   fi 
 }
 
