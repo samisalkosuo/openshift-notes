@@ -98,6 +98,7 @@ function ocpPrepareInstall
 
   createSSHKey
 
+
   echo "creating install-config.yaml..."
   local __install_cfg_file=${__omg_runtime_dir}/install-config.yaml
   #create install-config.yaml
@@ -130,7 +131,24 @@ platform:
 fips: false
 pullSecret: '${__pull_secret_json}'
 EOF
-  
+
+  #add http proxy
+  if [[ "$OCP_HTTP_PROXY" != "" ]]; then
+    echo "setting HTTP proxy to install-config.yaml..."
+    if [[ "$OCP_NO_PROXY" != "" ]]; then
+      OCP_NO_PROXY=".apps.${OCP_CLUSTER_NAME}.${OCP_DOMAIN},$OCP_NO_PROXY"
+    else 
+      OCP_NO_PROXY=".apps.${OCP_CLUSTER_NAME}.${OCP_DOMAIN}"
+    fi
+    cat > ${__install_cfg_file} << EOF
+proxy:
+  httpProxy: ${OCP_HTTP_PROXY}
+  httpsProxy: ${OCP_HTTPS_PROXY}
+  noProxy: ${OCP_NO_PROXY}
+EOF
+  fi
+
+
   #add ssh key to install config file
   echo -n "sshKey: '" >> ${__install_cfg_file} && cat ${__ssh_key_file}.pub | sed "s/$/\'/g" >> ${__install_cfg_file}
 

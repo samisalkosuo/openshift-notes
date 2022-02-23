@@ -43,6 +43,12 @@ export OCP_NODE_BASTION_IP_ADDRESS=192.168.47.99
 export OCP_NODE_BASTION="bastion ${OCP_NODE_BASTION_IP_ADDRESS}"
 export OCP_NODE_LB="lb ${OCP_NODE_BASTION_IP_ADDRESS}"
 
+#if installing with proxy
+#uncomment and edit following variables
+#export OCP_HTTP_PROXY=
+#export OCP_HTTPS_PROXY=
+#export OCP_NO_PROXY=
+
 #other hosts in the OCP environment
 # these are in DNS but not in DHCP
 #syntax: "<HOSTNAME> <IP>; <HOSTNAME> <IP>;"

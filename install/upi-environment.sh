@@ -14,6 +14,12 @@ export OCP_VERSION=4.6.42
 export OCP_RHCOS_MAJOR_RELEASE=4.6
 export OCP_RHCOS_VERSION=4.6.40
 
+#if installing with proxy
+#uncomment and edit following variables
+#export OCP_HTTP_PROXY=
+#export OCP_HTTPS_PROXY=
+#export OCP_NO_PROXY=
+
 #modify after boostrap is complete and installation instructs to remove bootstrap and then:
 #  set this to "yes"
 #  shutdown bootstrap node 
