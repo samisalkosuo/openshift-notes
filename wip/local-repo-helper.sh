@@ -23,6 +23,13 @@ PREREQ_PACKAGES="jq \
                 python3 \
                 git \
                 httpd \
+                ntpstat \
+                chrony \
+                bind \
+                bind-utils \
+                dhcp-server \
+                dhcp-client \
+                expect \
                 ansible \
                 ntfs-3g \
                 unzip \
