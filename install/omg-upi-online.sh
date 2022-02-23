@@ -44,6 +44,10 @@ if [ ! -f "$OCP_PULL_SECRET_FILE" ]; then
   error "Pull secret $OCP_PULL_SECRET_FILE does not exist. Download it from Red Hat."
 fi
 
+#unset IPI install variable(s), just in case
+#OCP_VSPHERE_VIRTUAL_IP_API is used to choose IPI or UPI load balancer config
+unset OCP_VSPHERE_VIRTUAL_IP_API
+
 #call functions
 #note 'shift' command moves ARGS to the left 
 #=> for example removes govc param and sends remaining args as options to command
