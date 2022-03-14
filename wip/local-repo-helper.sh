@@ -39,7 +39,9 @@ PREREQ_PACKAGES="jq \
                 yum-utils \
                 createrepo \
                 libmodulemd \
-                modulemd-tools
+                modulemd-tools \
+                cloud-utils-growpart \
+                gdisk \
                 "
 
 
