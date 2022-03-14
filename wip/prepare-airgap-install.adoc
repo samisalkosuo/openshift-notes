@@ -11,12 +11,17 @@ The steps should work with any RHEL, CentOS or Rocky Linux 8.x
 == Prepare
 
 * Clone this repository:
-** `git clone https://github.com/samisalkosuo/openshift-notes`
-** Directory `wip` includes scripts used in downloading/mirroring.
-** These instructions assume that `wip`-directory is the working directory.
+```
+git clone https://github.com/samisalkosuo/openshift-notes
+```
+
+* Directory `wip` includes scripts used in downloading/mirroring.
+* These instructions assume that `wip`-directory is the working directory.
 * Download openshift-notes files:
-** `wget https://github.com/samisalkosuo/openshift-notes/archive/refs/heads/main.zip`
-** Copy `main.zip` to airgapped server.
+```
+wget https://github.com/samisalkosuo/openshift-notes/archive/refs/heads/main.zip
+```
+* Copy `main.zip` to airgapped server.
 
 == Offline repository
 
@@ -24,14 +29,23 @@ If airgapped Linux does not have dnf-repository configured, download packages in
 
 * Edit `local-repo-helper.sh` script and add all required packages.
 * Install all packages in jump server:
-** `sh local-repo-helper.sh install-all`
+```
+sh local-repo-helper.sh install-all
+```
 * Create repository-tar file:
-** `sh local-repo-helper.sh create-offline`
+```
+sh local-repo-helper.sh create-offline
+```
 * Copy `offline-repository.tar` to airgapped server.
 * Create local repo in airgapped server:
-** `sh local-repo-helper.sh create-local`
+```
+sh local-repo-helper.sh create-local
+```
 * Install all packages in airgapped server:
-** `sh local-repo-helper.sh install-all`
+```
+sh local-repo-helper.sh install-all
+```
+
 
 == OpenShift
 
@@ -42,9 +56,11 @@ Self-signed certificates are used in Quay-registry.
 Create CA-certificate (required by download script):
 
 * Create CA for given domain:
-** `sh self-signed-cert.sh create-ca-cert forum.lab`
-** where `forum.lab` is domain for CA. Use your own.
-* CA certificate can be also created in airgapped server when needed for registry.
+```
+sh self-signed-cert.sh create-ca-cert forum.lab
+```
+* where `forum.lab` is domain for CA. Use your own.
+** CA certificate can be also created in airgapped server when needed for registry.
 
 === Edit versions
 
@@ -55,13 +71,17 @@ Create CA-certificate (required by download script):
 === RHCOS
 
 * Download RHCOS files and other files needed for web server and TFTP:
-** `sh omg.sh prepare-httpd-tftp-jump`
+```
+sh omg.sh prepare-httpd-tftp-jump
+```
 * Copy `dist-omg-httpd.tar` to airgapped server.
 
 === Images and clients
 
 * Download OpenShift clients and images:
-** `sh omg.sh prepare-bastion-jump`
+```
+sh omg.sh prepare-bastion-jump
+```
 ** Download includes oc, opm, openshift-install and cloudctl.
 * Copy `dist-omg-bastion.tar` to airgapped server.
 
@@ -71,49 +91,87 @@ MCM requires Advanced Cluster Management. Recommended storage is OpenShift Data 
 Both are available in OperatorHub.
 
 * Copy pull-secret.json as podman login file:
-** `cp /root/pull-secret.json ${XDG_RUNTIME_DIR}/containers/auth.json`
+```
+cp /root/pull-secret.json ${XDG_RUNTIME_DIR}/containers/auth.json
+```
 * Verify that login is successful:
-** `podman login registry.redhat.io`
+```
+podman login registry.redhat.io
+```
 * Export variable:
-** `export REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json`
+```
+export REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json
+```
 * Index image that is available in a registry is required when mirroring OperatorHub content.
-** Create local registry:
-*** `sh local-registry.sh create`
-*** Local registry:
-**** `localhost:6000`
-** Start local registry:
-*** `sh local-registry.sh start`
+* Create local registry:
+```
+sh local-registry.sh create
+```
+* Start local registry:
+```
+sh local-registry.sh start
+```
+* Verify that podman is logged in to local registry
+```
+podman login localhost:6000
+```
 * Set OCP version:
-** `export VERSION=v4.8`
+```
+export VERSION=v4.8
+```
 * Pull index image:
-** `podman pull registry.redhat.io/redhat/redhat-operator-index:${VERSION}`
+```
+podman pull registry.redhat.io/redhat/redhat-operator-index:${VERSION}
+```
 * Create directory:
-** `mkdir operatorhub && cd operatorhub`
+```
+mkdir operatorhub && cd operatorhub
+```
 
 === OpenShift Data Foundation (OCS)
 
 * Prune index, include only OCS:
-** `opm index prune -f registry.redhat.io/redhat/redhat-operator-index:${VERSION} -p local-storage-operator,ocs-operator -t localhost:6000/redhat-operator-index-ocs:${VERSION}`
+```
+opm index prune -f registry.redhat.io/redhat/redhat-operator-index:${VERSION} -p local-storage-operator,ocs-operator -t localhost:6000/redhat-operator-index-ocs:${VERSION}
+```
+
 * Push to local registry:
-** `podman push localhost:6000/redhat-operator-index-ocs:${VERSION}`
+```
+podman push localhost:6000/redhat-operator-index-ocs:${VERSION}
+```
+
 * Mirror images to files:
-** `oc adm catalog mirror localhost:6000/redhat-operator-index-ocs:${VERSION} file:///ocs -a ${REG_CREDS}  2>&1 | tee mirror-output-ocs.txt`
+```
+oc adm catalog mirror localhost:6000/redhat-operator-index-ocs:${VERSION} file:///ocs -a ${REG_CREDS}  2>&1 | tee mirror-output-ocs.txt
+```
+
 
 === Advanced Cluster Management (ACM)
 
 * Prune index, include only ACM:
-** `opm index prune -f registry.redhat.io/redhat/redhat-operator-index:${VERSION} -p advanced-cluster-management,klusterlet-product -t localhost:6000/redhat-operator-index-acm:${VERSION}`
+```
+opm index prune -f registry.redhat.io/redhat/redhat-operator-index:${VERSION} -p advanced-cluster-management,klusterlet-product -t localhost:6000/redhat-operator-index-acm:${VERSION}
+```
+
 * Push to local registry:
-** `podman push localhost:6000/redhat-operator-index-acm:${VERSION}`
+```
+podman push localhost:6000/redhat-operator-index-acm:${VERSION}
+```
+
 * Mirror images to files:
-** `oc adm catalog mirror localhost:6000/redhat-operator-index-acm:${VERSION} file:///acm -a ${REG_CREDS}  2>&1 | tee mirror-output-acm.txt`
+```
+oc adm catalog mirror localhost:6000/redhat-operator-index-acm:${VERSION} file:///acm -a ${REG_CREDS}  2>&1 | tee mirror-output-acm.txt
+```
+
 
 === Package OperatorHub images
 
 * After images have been downloaded, package them as tar.
 * Tar operatorhub-directory:
-** `tar -cf operatorhub.tar operatorhub/`
-* Copy to airgapped server.
+```
+tar -cf operatorhub.tar operatorhub/
+```
+* Copy tar-file to airgapped server.
 
 == Registry
 
@@ -128,7 +186,10 @@ See blog post: https://cloud.redhat.com/blog/introducing-mirror-registry-for-red
 
 * Check version from https://mirror.openshift.com/pub/openshift-v4/clients/mirror-registry/.
 * Download v1.0 using:
-** ` wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/mirror-registry/1.0/mirror-registry.tar.gz`
+```
+wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/mirror-registry/1.0/mirror-registry.tar.gz
+```
+
 * Copy tar-file to airgapped server.
 
 === Quay-registry
