@@ -11,7 +11,8 @@ Get MCM images for airgapped install, instructions applied from documentation: h
 ```
 export MCM_DIR=/mcm
 export OFFLINE_DIR=$MCM_DIR/offline
-mkdir -p $OFFLINE_DIR
+export EXTERNAL_DOCKER_REGISTRY_DIR=$OFFLINE_DIR/cp4mcm-registry
+mkdir -p $EXTERNAL_DOCKER_REGISTRY_DIR
 ```
 * Change to MCM_DIR:
 ```
@@ -26,7 +27,6 @@ export CASE_INVENTORY_SETUP=cp4mcmInstallerSetup
 export EXTERNAL_DOCKER_REGISTRY=localhost:443
 export EXTERNAL_DOCKER_USER=admin
 export EXTERNAL_DOCKER_PASSWORD=passw0rd
-export EXTERNAL_DOCKER_REGISTRY_DIR=$OFFLINE_DIR/cp4mcm-registry
 export OFFLINE_ARCHIVE=offline.tar
 ```
 * Download MCM installer and image inventory:
