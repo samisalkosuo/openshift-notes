@@ -1,0 +1,188 @@
+= Prepare MCM airgapped install
+:toc: left
+:toc-title: Table of Contents
+
+== Jump server
+
+Get MCM images for airgapped install, instructions applied from documentation: https://www.ibm.com/docs/en/cloud-paks/cp-management/2.3.x?topic=installation-preparing-by-using-portable-storage-device.
+
+
+* Create directories for MCM files
+```
+export MCM_DIR=/mcm
+export OFFLINE_DIR=$MCM_DIR/offline
+mkdir -p $OFFLINE_DIR
+```
+* Change to MCM_DIR:
+```
+cd $MCM_DIR
+```
+* Check latest MCM version from https://github.com/IBM/cloud-pak/tree/master/repo/case
+** MCM package name is similar to `ibm-cp-management-100.3.25+2.3.24.tgz`.
+* Create case archive and local registry environment variables:
+```
+export CASE_ARCHIVE=ibm-cp-management-100.3.25+2.3.24.tgz
+export CASE_INVENTORY_SETUP=cp4mcmInstallerSetup
+export EXTERNAL_DOCKER_REGISTRY=localhost:443
+export EXTERNAL_DOCKER_USER=admin
+export EXTERNAL_DOCKER_PASSWORD=passw0rd
+export EXTERNAL_DOCKER_REGISTRY_DIR=$OFFLINE_DIR/cp4mcm-registry
+export OFFLINE_ARCHIVE=offline.tar
+```
+* Download MCM installer and image inventory:
+```
+cloudctl case save --case https://github.com/IBM/cloud-pak/raw/master/repo/case/${CASE_ARCHIVE} --outputdir $OFFLINE_DIR/ --tolerance 1
+```
+* Download registry image:
+```
+podman pull docker.io/library/registry:2.6
+```
+```
+podman save docker.io/library/registry:2.6 -o ${EXTERNAL_DOCKER_REGISTRY_DIR}/registry-image.tar
+```
+* Start local registry:
+```
+cloudctl case launch   --case $OFFLINE_DIR/${CASE_ARCHIVE}   --inventory ${CASE_INVENTORY_SETUP}   --action create-registry-airgap   --args "--registry ${EXTERNAL_DOCKER_REGISTRY} --user ${EXTERNAL_DOCKER_USER} --pass ${EXTERNAL_DOCKER_PASSWORD} --registryDir ${EXTERNAL_DOCKER_REGISTRY_DIR}"   --tolerance 1
+```
+* Set IBM registry key:
+```
+export IBM_ENTITLEMENT_KEY=<your ibm entitlement key>
+```
+* Create authentication for local registry:
+```
+cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} --inventory ${CASE_INVENTORY_SETUP} --action configure-creds-airgap --args "--registry ${EXTERNAL_DOCKER_REGISTRY} --user ${EXTERNAL_DOCKER_USER} --pass ${EXTERNAL_DOCKER_PASSWORD}" --tolerance 1
+```
+* Create authentication for IBM registry:
+```
+cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} -inventory ${CASE_INVENTORY_SETUP} --action configure-creds-airgap --args "--registry cp.icr.io --user cp --pass $IBM_ENTITLEMENT_KEY --inputDir $OFFLINE_DIR" --tolerance 1
+```
+* Mirror MCM images to local registry:
+```
+cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} --inventory ${CASE_INVENTORY_SETUP} --action mirror-images --args "--registry ${EXTERNAL_DOCKER_REGISTRY} --inputDir $OFFLINE_DIR"   --tolerance 1 2>&1 | tee mirror-output-mcm.txt
+```
+* If the above command fails, and shows errors while uploading images, repeat command until there are no errors.
+* Alternatively, do mirroring in a loop for a few times:
+```
+for i in {1..25}
+do
+  cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} --inventory ${CASE_INVENTORY_SETUP} --action mirror-images --args "--registry ${EXTERNAL_DOCKER_REGISTRY} --inputDir $OFFLINE_DIR"   --tolerance 1 2>&1 | tee mirror-output-mcm-${i}.txt
+done
+```
+* Tar MCM offline-directory:
+```
+tar -cf $OFFLINE_ARCHIVE -C $OFFLINE_DIR .
+```
+* Copy tar-file to airgapped server.
+
+
+== Airgapped server
+
+* Create following namespaces (or organizations) in airgapped registry (for example Quay):
+** `ibmcom` - Namespace to store all images from the dockerhub.io/ibmcom namespace.
+** `cp` - Namespace to store the IBM images from the cp.icr.io/cp repository.
+** `opencloudio` - Namespace to store the images from quay.io/opencloudio.
+** `cp4mcm` - Namespace to store the IBM Cloud Pak for Multicloud Management installer images from quay.io/cp4mcm.
+** `cpopen` - Namespace to store images.
+* Create directory for MCM install:
+```
+export MCM_DIR=$(pwd)/mcm
+export OFFLINE_DIR=$MCM_DIR/offline
+mkdir -p $OFFLINE_DIR
+```
+* Create namespaces for MCM:
+```
+export NAMESPACE=mcm
+export CS_NAMESPACE=common-service
+oc create namespace ${NAMESPACE}
+oc create namespace ${CS_NAMESPACE}
+```
+* Set environment variables:
+```
+export CASE_ARCHIVE=ibm-cp-management-100.3.25+2.3.24.tgz
+export CASE_INVENTORY_SETUP=cp4mcmInstallerSetup
+export PORTABLE_DOCKER_REGISTRY_HOST=localhost
+export PORTABLE_DOCKER_REGISTRY_PORT=443
+export PORTABLE_DOCKER_REGISTRY=${PORTABLE_DOCKER_REGISTRY_HOST}:${PORTABLE_DOCKER_REGISTRY_PORT}
+export PORTABLE_DOCKER_REGISTRY_DIR=$OFFLINE_DIR/cp4mcm-registry
+export PORTABLE_DOCKER_USER=admin
+export PORTABLE_DOCKER_PASSWORD=passw0rd
+export OFFLINE_ARCHIVE=offline.tar
+```
+* Extract offline tar-file: 
+```
+tar -xf $OFFLINE_ARCHIVE -C $OFFLINE_DIR
+```
+* Load registry image:
+```
+podman load -i ${PORTABLE_DOCKER_REGISTRY_DIR}/registry-image.tar
+```
+* Start local registry:
+```
+cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} --inventory $CASE_INVENTORY_SETUP --action start-registry --args "--registry ${PORTABLE_DOCKER_REGISTRY_HOST} --port ${PORTABLE_DOCKER_REGISTRY_PORT} --dir ${PORTABLE_DOCKER_REGISTRY_DIR} --engine podman" --tolerance 1
+```
+* If above command fails, start registry using podman:
+```
+podman run -d --rm --name local-registry -p ${PORTABLE_DOCKER_REGISTRY_PORT}:5000 -v ${PORTABLE_DOCKER_REGISTRY_DIR}/data:/var/lib/registry:z -v ${PORTABLE_DOCKER_REGISTRY_DIR}/auth:/auth:z -e REGISTRY_STORAGE_DELETE_ENABLED=true -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v ${PORTABLE_DOCKER_REGISTRY_DIR}/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/server.crt -e REGISTRY_HTTP_TLS_KEY=/certs/server.key docker.io/library/registry:2.6`
+```
+* create portable registry credentials:
+```
+cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} --inventory ${CASE_INVENTORY_SETUP} --action configure-creds-airgap --args "--registry ${PORTABLE_DOCKER_REGISTRY} --user ${PORTABLE_DOCKER_USER} --pass ${PORTABLE_DOCKER_PASSWORD}"   --tolerance 1
+```
+* set registry (Quay) credentials
+```
+export LOCAL_DOCKER_REGISTRY=registry.forum.lab:443
+export LOCAL_DOCKER_USER=admin
+export LOCAL_DOCKER_PASSWORD=passw0rd
+
+cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} --inventory ${CASE_INVENTORY_SETUP} --action configure-creds-airgap --args "--registry ${LOCAL_DOCKER_REGISTRY} --user ${LOCAL_DOCKER_USER} --pass ${LOCAL_DOCKER_PASSWORD}"  --tolerance 1
+```
+* mirror images to Quay registry:
+```
+cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} --inventory ${CASE_INVENTORY_SETUP} --action mirror-images --args "--fromRegistry ${PORTABLE_DOCKER_REGISTRY} --registry ${LOCAL_DOCKER_REGISTRY} --inputDir $OFFLINE_DIR" --tolerance 1
+```
+* if above commands fails with errors like
+```
+error: unable to push localhost:443/cp/cp4mcm/bastion: failed to upload blob sha256:d3d8e652b0af9fc3fd138e48a12b5b542aff3abe7379f3d0542b7908e454b08e: Post "https://registry.forum.lab:443/v2/cp/cp4mcm/bastion/blobs/uploads/": http2: server sent GOAWAY and closed the connection; LastStreamID=1, ErrCode=ENHANCE_YOUR_CALM, debug=""
+info: Mirroring completed in 39.89s (0B/s)
+error: one or more errors occurred while uploading images
+error: Launch script failed due to: exit status 11
+```
+* then mirror images manually
+* go to `/tmp` directory
+* list files:
+```
+ls -latr
+```
+* the newest directory should be something like `airgap_image_mapping_eL4hX15zv_splits`
+* go to that directory:
+```
+cd airgap_image_mapping_eL4hX15zv_splits
+```
+* directory has mapping files like `image_map_aa`
+* mirror using single mapping file:
+```
+oc image mirror -a ${XDG_RUNTIME_DIR}/containers/auth.json -f "/tmp/airgap_image_mapping_eL4hX15zv_splits/image_map_aa" --filter-by-os '.*' --skip-multiple-scopes=true --max-per-registry=1 --insecure
+```
+* mirror all images in image mapping files:
+```
+ls -1 image_map_* | awk '{print "oc image mirror -a ${XDG_RUNTIME_DIR}/containers/auth.json -f /tmp/airgap_image_mapping_eL4hX15zv_splits/" $1 " --filter-by-os \"'.*'\" --skip-multiple-scopes=true --max-per-registry=1 --insecure  2>&1 | tee mirror_" $1 ".txt"}' | sh
+```
+* check that there are no errors:
+```
+cat mirror_image_map*txt |grep error
+```
+* Configure ImageContentSourcePolicy and global pull secret
+```
+cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} --inventory ${CASE_INVENTORY_SETUP} --action configure-cluster-airgap --namespace ${NAMESPACE} --args "--registry ${LOCAL_DOCKER_REGISTRY} --user ${LOCAL_DOCKER_USER} --pass ${LOCAL_DOCKER_PASSWORD} --inputDir $OFFLINE_DIR" --tolerance 1
+```
+* Create catalogsources:
+```
+cloudctl case launch --case $OFFLINE_DIR/${CASE_ARCHIVE} --inventory ${CASE_INVENTORY_SETUP} --action install-catalog --namespace ${NAMESPACE} --args "--registry ${LOCAL_DOCKER_REGISTRY} --inputDir $OFFLINE_DIR --recursive" --tolerance 1
+```
+* Set docker registry credentials, just in case and if installing MCM from command line: 
+```
+export ENTITLED_REGISTRY=cp.icr.io
+export ENTITLED_REGISTRY_USER=cp
+export ENTITLED_REGISTRY_KEY=<entitlement_key>
+oc create secret docker-registry ibm-entitlement-key --docker-username=$ENTITLED_REGISTRY_USER --docker-password=$ENTITLED_REGISTRY_KEY --docker-email=some@example.com --docker-server=$ENTITLED_REGISTRY -n $NAMESPACE
+```
