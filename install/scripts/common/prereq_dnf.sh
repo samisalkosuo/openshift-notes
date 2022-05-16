@@ -39,7 +39,8 @@ function installPrereqs
     #prereq packages
     echo "Installing prereq packages..."
     echo "enabling Extra Packages for Enterprise Linux..."
-    yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+    dnf -y install epel-release
+    #yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     dnf -y install --enablerepo=epel-testing $__prereq_packages
 
     echo "Installing prereq packages...done."
