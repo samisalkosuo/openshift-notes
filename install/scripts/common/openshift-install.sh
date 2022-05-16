@@ -140,7 +140,7 @@ EOF
     else 
       OCP_NO_PROXY=".apps.${OCP_CLUSTER_NAME}.${OCP_DOMAIN}"
     fi
-    cat > ${__install_cfg_file} << EOF
+    cat >> ${__install_cfg_file} << EOF
 proxy:
   httpProxy: ${OCP_HTTP_PROXY}
   httpsProxy: ${OCP_HTTPS_PROXY}
