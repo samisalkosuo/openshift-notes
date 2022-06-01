@@ -265,7 +265,7 @@ function createCertForName
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
   -keyout $__cert_dir/${subject}.key -out ${__cert_dir}/${subject}.crt -subj "/CN=${subject}" \
   -addext "subjectAltName=DNS:${subject}"
-  #use -addext "server.example.com,DNS:server,IP:127.0.01"
+  #use -addext "server.example.com,DNS:server,IP:127.0.0.1"
   #in order to use more alt names 
 }
 

@@ -3,4 +3,4 @@
 Work in progress directory for scripts and stuff.
 
 * link:prepare-airgap-install.adoc/[Prepare OpenShift airgapped install] has some steps to prepare for airgapped OpenShift installation.
-* link:prepare-mcm-airgap-install.adoc/[prepare-mcm-airgap-install.adoc] has some steps to prepare for airgapped MCM installation.
+* link:prepare-mcm-airgap-install.adoc/[Prepare MCM airgapped install] has some steps to prepare for airgapped MCM installation.

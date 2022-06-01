@@ -88,7 +88,7 @@ sh omg.sh prepare-bastion-jump
 == OperatorHub
 
 MCM requires Advanced Cluster Management. Recommended storage is OpenShift Data Foundation (or OpenShift Container Storage).
-Both are available in OperatorHub.
+Both are available in OperatorHub. See also https://docs.openshift.com/container-platform/4.8/operators/admin/olm-restricted-networks.html[OpenShift documentation about using operators in airgapped environment].
 
 * Copy pull-secret.json as podman login file:
 ```
