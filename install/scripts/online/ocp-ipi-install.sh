@@ -79,6 +79,7 @@ platform:
     network: ${OCP_VSPHERE_NETWORK}
     apiVIP: ${OCP_VSPHERE_VIRTUAL_IP_API}
     ingressVIP: ${OCP_VSPHERE_VIRTUAL_IP_INGRESS}
+    diskType: thin
 publish: External
 pullSecret: '${__pull_secret_json}'
 sshKey: |
