@@ -1,12 +1,38 @@
 = GitOps
 
-Work in progress
-
+Setup GitOps demo-environment.
 
 * Install GitOps operator
+
+```
+oc apply -f gitops-subscription.yaml
+```
+
+* Get route
+
+```
+oc get route -n openshift-gitops |grep openshift-gitops-server |awk '{print $2}'
+```
+
 * Get password
+
+```
+oc -n openshift-gitops get secret openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' |base64 -d
+```
+
 * Create OCP config application
+
+```
+oc apply -f argo/cluster-config-app.yaml
+```
+* Configuration is not automatically synced.
+* Go to GitOps UI and sync config.
+** Configuration creates ace-sample namespaces that ACE sample application uses.
 * Create Ace-sample application
-* Create Elasticsearch app
-* Create nodejs sample app
+
+```
+oc apply -f argo/ace-sample-app.yaml
+```
+
+* ACE sample application is automatically synced.
 
