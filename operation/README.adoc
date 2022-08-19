@@ -12,7 +12,8 @@ https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner[Kubernetes NF
 
 * Follow instructions in https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner.
 * After storage class is created, optionally set _managed-nfs-storage_-storageclass as default:
-** `oc patch storageclass managed-nfs-storage -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'`
+
+`oc patch storageclass managed-nfs-storage -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'`
 
 === Airgapped installation
 
@@ -72,10 +73,14 @@ Internal image registry is not initially available in OpenShift UPI online or ai
 ** For example, NFS provisioner described previously.
 * Configure a default storageclass (like the NFS provisioner).
 * Patch image registry operator configuration:
-** `oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'`
+
+`oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'`
+
 * The patch-command creates also default route for the registry.
 ** Get default route using command:
-** `oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'`
+
+`oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'`
+
 * Registry can not be used until an identity provider (for example LDAP or HTPasswd) has been configured.
 ** See later sections about LDAP and HTPasswd identity provider.
 
@@ -168,9 +173,12 @@ By default, there are no cluster admin users when adding new identity provider o
 Use existing cluster admin (kubeadmin for example) to add new cluster admins.
 
 * Add individual user as cluster admin:
-** `oc adm policy add-cluster-role-to-user cluster-admin <user>`
+
+`oc adm policy add-cluster-role-to-user cluster-admin <user>`
+
 * Add a group as cluster-admins:
-** `oc adm policy add-cluster-role-to-group cluster-admin <group>`
+
+`oc adm policy add-cluster-role-to-group cluster-admin <group>`
 
 == HTPasswd identity provider
 
@@ -357,10 +365,12 @@ The steps 1-8 in the documentation can be done using _restore_-scripts in the _b
 If using scripts, execute scripts in order and follow instructions
 
 * Copy _snapshot*_ and _static_*_ backup files to directory where _restore_-scripts are.
-* `sh restore_etcd_step_1.sh`
-* `sh restore_etcd_step_2.sh`
-* `sh restore_etcd_step_3.sh`
-* `sh restore_etcd_step_4.sh`
+```
+sh restore_etcd_step_1.sh
+sh restore_etcd_step_2.sh
+sh restore_etcd_step_3.sh
+sh restore_etcd_step_4.sh
+```
 * After executing step 4, https://docs.openshift.com/container-platform/4.6/backup_and_restore/disaster_recovery/scenario-2-restoring-cluster-state.html[go to documentation] and continue from step 9.
 
 == Delete terminating namespace
@@ -375,13 +385,35 @@ Sometimes, when deleting namespace, it gets stuck at "Terminating".
 But if namespace just needs to be removed, you can forcefully delete it.
 
 * Edit namespace and remove all finalizers
-** `oc edit namespace annoying-namespace`
+```
+oc edit namespace annoying-namespace
+```
 * If it does not work, then continue.
 * Get annoying namespace as JSON:
-** `oc get namespace annoying-namespace -o json > tmp.json`
+```
+oc get namespace annoying-namespace -o json > tmp.json
+```
 * Edit tmp.json
 ** Find _finalizers_ and remove all entries (usually "kubernetes")
 * Apply tmp.json:
-** `oc replace --raw "/api/v1/namespaces/annoying-namespace/finalize" -f ./tmp.json`
+```
+oc replace --raw "/api/v1/namespaces/annoying-namespace/finalize" -f ./tmp.json
+```
 * Verify that namespace is deleted
-** `oc get namespace |grep Terminating`
+```
+oc get namespace |grep Terminating
+```
+
+
+== Change VSphere configuration
+
+* Change VSphere username and password by modifying `vsphere-creds` secret:
+```
+oc edit secret vsphere-creds -n kube-system -o yaml
+```
+* Encode credentials using base64:
+```
+echo -n "OpenShifttestpassword" | base64 -w0
+```
+
+More detailed instructions: https://access.redhat.com/solutions/4618011.
