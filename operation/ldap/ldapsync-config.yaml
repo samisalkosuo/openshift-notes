@@ -10,12 +10,12 @@
 kind: LDAPSyncConfig
 apiVersion: v1
 url: ldap://192.168.47.99:389
-bindDN: cn=admin,dc=farawaygalaxy,dc=net
+bindDN: cn=admin,dc=sirius,dc=com
 bindPassword: passw0rd
 insecure: true
 rfc2307:
   groupsQuery:
-    baseDN: "ou=groups,dc=farawaygalaxy,dc=net"
+    baseDN: "ou=groups,dc=sirius,dc=com"
     filter: (objectclass=groupOfUniqueNames)
     scope: sub
     derefAliases: always
@@ -24,7 +24,7 @@ rfc2307:
   groupNameAttributes: [ cn ]
   groupMembershipAttributes: [ uniqueMember ]
   usersQuery:
-    baseDN: "ou=users,dc=farawaygalaxy,dc=net"
+    baseDN: "ou=users,dc=sirius,dc=com"
     scope: sub
     derefAliases: always
     pageSize: 0

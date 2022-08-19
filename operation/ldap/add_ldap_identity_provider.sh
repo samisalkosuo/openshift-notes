@@ -13,12 +13,12 @@ set -e
 
 #set LDAP parameters 
 __ldap_name=openldap-demo
-__ldap_bind_dn=cn=admin,dc=farawaygalaxy,dc=net
+__ldap_bind_dn=cn=admin,dc=sirius,dc=com
 __ldap_bind_password=passw0rd
 __ldap_server=192.168.47.99
 __ldap_server_port=389
 __ldap_insecure=true
-__ldap_basedn=dc=farawaygalaxy,dc=net
+__ldap_basedn=dc=sirius,dc=com
 __ldap_search_attribute=uid
 __ldap_name_attribute=cn
 __ldap_preferred_username_attribute=uid
