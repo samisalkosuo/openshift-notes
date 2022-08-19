@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ace-sample
+  namespace: openshift-gitops
+spec:
+  destination:
+    namespace: ace-sample
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      recurse: true
+    path: openshift
+    repoURL: https://github.com/samisalkosuo/ace-sample
+    targetRevision: main
+  #ignore generated path in route
+  #see about ignoring: https://argo-cd.readthedocs.io/en/stable/user-guide/diffing/
+  ignoreDifferences:
+  - group: route.openshift.io
+    kind: Route
+    jsonPointers:
+    - /spec/host
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
