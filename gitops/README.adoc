@@ -1,0 +1,12 @@
+= GitOps
+
+Work in progress
+
+
+* Install GitOps operator
+* Get password
+* Create OCP config application
+* Create Ace-sample application
+* Create Elasticsearch app
+* Create nodejs sample app
+

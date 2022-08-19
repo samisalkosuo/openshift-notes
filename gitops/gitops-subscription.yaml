@@ -1,0 +1,15 @@
+#GitOps operator subscription
+#https://docs.openshift.com/container-platform/4.10/cicd/gitops/installing-openshift-gitops.html#installing-gitops-operator-using-cli_installing-openshift-gitops
+#after installing get password using
+# oc -n openshift-gitops get secret openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' |base64 -d
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: openshift-gitops-operator
+  namespace: openshift-operators
+spec:
+  channel: stable 
+  installPlanApproval: Automatic
+  name: openshift-gitops-operator 
+  source: redhat-operators 
+  sourceNamespace: openshift-marketplace 
