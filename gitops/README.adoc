@@ -1,6 +1,6 @@
 = GitOps
 
-Setup GitOps demo-environment.
+Setup GitOps demo-environment. See also LinkedIn post: https://www.linkedin.com/pulse/you-ace-gitops-sami-salkosuo[Are you ACE? The GitOps ACE]
 
 * Install GitOps operator
 
