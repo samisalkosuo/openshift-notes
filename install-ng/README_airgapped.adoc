@@ -1,0 +1,323 @@
+= OpenShift airgapped UPI-installation
+
+Install OpenShift using UPI in an airgapped environment. 
+
+Tested with OpenShift 4.10.
+
+== Prereqs
+
+* This repository downloaded/cloned to Linux jump-server.
+* Jump-server with internet access.
+* Bastion-server in airgapped environment.
+
+== Setup environment variables - online
+
+The installation uses environment variables and link:ocp-environment-variables.sh[ocp-environment-variables.sh] includes the variables used to install OpenShift UPI installation.
+
+The following ennvironment variables are used in jump-server, in order to download OpenShift images locally.
+
+```
+OMG_OCP_PULL_SECRET_FILE
+OMG_OCP_VERSION
+```
+
+The other variables are used during the installation in airgapped bastion-host
+
+After setting variables, apply them:
+
+```
+source ocp-environment-variables.sh
+```
+
+== Download and package - online
+
+Download necessary files, images and packages from Internet.
+
+* Download and package software from repository.
+
+```
+sh download-dnf.sh
+```
+
+* Download clients.
+
+```
+sh download-clients.sh
+```
+
+* Download RHCOS.
+
+```
+sh download-rhcos.sh
+```
+
+* Download registry images: Redis, Postgres and https://www.projectquay.io/[Project Quay].
+
+```
+sh download-registry.sh
+```
+
+* Mirror OpenShift images:
+
+```
+sh download-ocp-images.sh
+```
+////
+* Mirror OpenShift images, including operators and additional images.
+** Configure link:imageset-config.yaml[imageset-config.yaml]
+
+```
+sh mirror-to-file.sh
+```
+////
+* Move files to dist-directory:
+
+```
+sh package-to-airgap.sh
+```
+
+* Optionally, package them as tar:
+
+```
+tar -cf dist.tar dist/
+```
+
+== Copy to airgapped bastion
+
+* Copy dist-directory or `dist.tar` to airgapped bastion.
+* Extract file, if you copied dist.tar:
+
+```
+tar -xf dist.tar
+```
+
+* Files are extracted to `dist` directory.
+
+```
+cd dist/
+```
+
+* dist-directory includes files needed for airgapped OpenShift install.
+
+== Setup environment variables - airgapped
+
+The installation uses environment variables and link:ocp-environment-variables.sh[ocp-environment-variables.sh] includes the variables used to install OpenShift UPI installation.
+
+Be extra careful to setup correct values for node IPs and MACs, OpenShift domain and cluster name and many others.
+
+After setting variables, apply them:
+
+```
+source ocp-environment-variables.sh
+```
+
+== Install packages - airgapped
+
+Install packages from local repository.
+
+```
+sh dnf-install-airgapped.sh
+```
+
+Or, if airgapped environment has access to repository, execute:
+
+```
+sh dnf-install.sh
+```
+
+
+== Install clients - airgapped
+
+Install clients by copying them to /usr/local/bin.
+
+```
+cp -r bin/* /usr/local/bin/
+```
+
+Set SELinux for coredns and gobetween:
+
+```
+semanage fcontext -a -t bin_t /usr/local/bin/coredns
+restorecon -vF  /usr/local/bin/coredns
+semanage fcontext -a -t bin_t /usr/local/bin/gobetween
+restorecon -vF  /usr/local/bin/gobetween
+```
+
+
+=== NTP - airgapped
+
+```
+sh setup-ntp.sh
+```
+
+=== DNS - airgapped
+
+```
+sh setup-dns.sh
+```
+
+* DNS is https://coredns.io/[CoreDNS].
+* DNS is configured using values in link:ocp-environment-variables.sh[ocp-environment-variables.sh].
+** Check status: `systemctl status coredns`
+** Check logs: `journalctl -u coredns`
+* Configuration files are located in `/etc/coredns/` directory.
+** When executing `setup-dns.sh`, it will overwrite configuration files.
+
+=== PXE - airgapped
+
+```
+sh setup-dhcp-pxe.sh
+```
+
+* DHCP, TFTP and Apache servers are configured using values in link:ocp-environment-variables.sh[ocp-environment-variables.sh].
+** Check status: `systemctl status dhcpd`
+** Check logs: `journalctl -u dhcpd`
+* dnsmasq is used as TFTP-server.
+** Check status: `systemctl status dnsmasq`
+** Check logs: `journalctl -u dnsmasq`
+* Apache is used as web server where RHCOS images are downloaded
+** Check status: `systemctl status httpd`
+** Check logs: `journalctl -u httpd`
+** RHCOS images are moved to `/var/www/html/rhcos` directory.
+** When executing `setup-dhcp-pxe.sh`, it will overwrite configuration files.
+
+=== Loadbalancer - airgapped
+
+Setup either haproxy or gobetween as loadbalancer.
+
+* Setup haproxy as loadbalancer:
+```
+sh setup-haproxy.sh
+```
+* Setup gobetween as loadbalancer:
+```
+sh setup-gobetween.sh
+```
+* haproxy:
+** Config-gile: `/etc/haproxy/haproxy.cfg`
+** Check status: `systemctl status haproxy`
+** Check logs: `journalctl -u haproxy`
+* gobetween:
+** Config-gile: `/etc/gobetween/config.toml`
+** Check status: `systemctl status gobetween`
+** Check logs: `journalctl -u gobetween`
+
+If not using bastion as load balancer, copy following files to load balancer server.
+
+```
+ocp-environment-variables.sh
+setup-gobetween.sh
+setup-haproxy.sh
+bin/
+dnf-install-airgapped.sh
+local-repo.tar
+```
+
+Copy files in bin-directory to /usr/local/bin.
+
+Then set up HAProxy or Gobetween.
+
+== Create certificates - airgapped
+
+Create CA certificate for your specified domain, for example `local.net`.
+
+```
+sh self-signed-cert.sh create-ca-cert local.net
+```
+
+Create certificate for the registry server and your specified domain, for example `registry.local.net`.
+
+```
+sh self-signed-cert.sh create-cert-using-ca local.net registry
+```
+
+Add domain, for example `local.net`, CA certificate as trusted.
+
+```
+sh self-signed-cert.sh add-ca-trusted local.net
+```
+
+Note that CA-certificate is also used when installing OpenShift from the airgapped registry. CA-certificate is added to install-config.yaml.
+
+== Setup Quay-registry - airgapped
+
+```
+sh setup-quay.sh
+```
+
+Quay-registry uses three systemd-services:
+
+* quay-postgres
+* quay-redis
+* quay-registry
+
+=== Create user and organization
+
+* After setting up Quay, login to registry and create user with name `admin` and password the same as `REGISTRY_USER_PASSWORD` in link:upload-ocp-images.sh[upload-ocp-images.sh].
+* Login to Quay as admin-user and create new organization with name `openshift`
+
+== Mirror OpenShift images - airgapped
+
+Mirror OpenShift images to airgapped registry.
+
+```
+sh upload-ocp-images.sh
+```
+
+////
+```
+sh mirror-from-file.sh
+```
+
+Mirroring creates `oc-mirror-workspace/`-directory and results-directory. Results-directory includes `imageContentSourcePolicy.yaml`-file that includes image sources required to install OpenShift in airgapped environment.
+
+* Copy `imageContentSourcePolicy.yaml` to dist-directory.
+* Rename file to `images.yaml`.
+* Edit `images.yaml` and remove all but mirrors and sources.
+* After editing the `images.yaml`, it looks like this:
+
+```
+  - mirrors:
+    - registry.local.net:443/openshift/web-terminal
+    source: registry.redhat.io/web-terminal
+  - mirrors:
+    - registry.local.net:443/openshift/redhat
+    source: registry.redhat.io/redhat
+  - mirrors:
+    - registry.local.net:443/openshift/web-terminal-tech-preview
+    source: registry.redhat.io/web-terminal-tech-preview
+  - mirrors:
+    - registry.local.net:443/openshift/devworkspace
+    source: registry.redhat.io/devworkspace
+  - mirrors:
+    - registry.local.net:443/openshift/openshift4
+    source: registry.redhat.io/openshift4
+  - mirrors:
+    - registry.local.net:443/openshift/ubi8-micro
+    source: registry.redhat.io/ubi8-micro
+  - mirrors:
+    - registry.local.net:443/openshift/kazhar
+    source: docker.io/kazhar
+  - mirrors:
+    - registry.local.net:443/openshift/ubi8
+    source: registry.redhat.io/ubi8
+  - mirrors:
+    - registry.local.net:443/openshift/operator-framework
+    source: quay.io/operator-framework
+  - mirrors:
+    - registry.local.net:443/openshift/openshift/release
+    source: quay.io/openshift-release-dev/ocp-release
+  - mirrors:
+    - registry.local.net:443/openshift/openshift/release
+    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+
+```
+
+* Image source are added to `install-config.yaml` in the next step.
+////
+
+== OpenShift install - airgapped
+
+Continue installation by following section "OpenShift install - prepare" in link:README_online.adoc[README_online.adoc]
+
+

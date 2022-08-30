@@ -1,0 +1,212 @@
+= OpenShift online UPI-installation
+
+Install OpenShift using UPI in an online environment.
+
+== Prereqs
+
+* This repository downloaded or cloned to Linux bastion-host.
+
+== Setup environment variables
+
+The installation uses environment variables and link:ocp-environment-variables.sh[ocp-environment-variables.sh] includes the variables used to install OpenShift UPI installation.
+
+Be extra careful to setup correct values for node IPs and MACs, OpenShift domain and cluster name and many others.
+
+After setting variables, apply them:
+
+```
+source ocp-environment-variables.sh
+```
+
+== Install and download
+
+* Install packages from repository:
+
+```
+sh dnf-install.sh
+```
+
+* Download oc and other clients:
+
+```
+sh download-clients.sh
+```
+
+* Download RHCOS-files:
+
+```
+sh download-rhcos.sh
+```
+
+== Install services
+
+Install services required by OpenShift. 
+
+=== NTP
+
+Set up NTP server.
+
+```
+sh setup-ntp.sh
+```
+
+=== DNS
+
+Set up DNS for OpenShift cluster.
+
+```
+sh setup-dns.sh
+```
+
+* DNS is https://coredns.io/[CoreDNS].
+* DNS is configured using values in link:ocp-environment-variables.sh[ocp-environment-variables.sh].
+** Check status: `systemctl status coredns`
+** Check logs: `journalctl -u coredns`
+* Configuration files are located in `/etc/coredns/` directory.
+** When executing `setup-dns.sh`, it will overwrite configuration files.
+
+=== PXE
+
+Set up PXE environment, including DHCP, TFTP and Apache.
+
+```
+sh setup-dhcp-pxe.sh
+```
+
+* DHCP, TFTP and Apache servers are configured using values in link:ocp-environment-variables.sh[ocp-environment-variables.sh].
+** Check status: `systemctl status dhcpd`
+** Check logs: `journalctl -u dhcpd`
+* dnsmasq is used as TFTP-server.
+** Check status: `systemctl status dnsmasq`
+** Check logs: `journalctl -u dnsmasq`
+* Apache is used as web server where RHCOS images are downloaded
+** Check status: `systemctl status httpd`
+** Check logs: `journalctl -u httpd`
+** RHCOS images are moved to `/var/www/html/rhcos` directory.
+** When executing `setup-dhcp-pxe.sh`, it will overwrite configuration files.
+
+=== Loadbalancer
+
+Setup either haproxy or gobetween as loadbalancer.
+
+* Setup haproxy as loadbalancer:
+
+```
+sh setup-haproxy.sh
+```
+
+* Setup gobetween as loadbalancer:
+
+```
+sh setup-gobetween.sh
+```
+
+* haproxy:
+** Config-gile: `/etc/haproxy/haproxy.cfg`
+** Check status: `systemctl status haproxy`
+** Check logs: `journalctl -u haproxy`
+* gobetween:
+** Config-gile: `/etc/gobetween/config.toml`
+** Check status: `systemctl status gobetween`
+** Check logs: `journalctl -u gobetween`
+
+
+=== OpenShift install - prepare
+
+After required services are up and running, the next step is to prepare for OpenShift installation by executing
+
+```
+sh ocp-prepare-install.sh
+```
+
+The script does the following:
+
+* Creates SSH key, if not already created.
+* Creates `install-config.yaml` file, using values in link:ocp-environment-variables.sh[ocp-environment-variables.sh].
+* Creates ignition files using `install-config.yaml` and moves them to directory served by Apache.
+* If you need to customize `install-config.yaml`, edit it in link:ocp-prepare-install.sh[ocp-prepare-install.sh].
+* Adds custom CA-certificate and image content source policy in airgapped environment.
+
+The environment is now ready to initiate OpenShift UPI installation.
+
+=== OpenShift install - bootstrap
+
+Power on bootstrap node. The node installs itself by getting IP address from DHCP and downloading RHCOS images and ignition file from the Apache server.
+
+* Wait until login screen is shown.
+* To check status:
+** Using bastion-host, use ssh to login to bootstrap node.
+*** For example: `ssh core@bootstrap`
+** Follow bootstrapping: `journalctl -b -f -u release-image.service -u bootkube.service`
+
+When bootstrap-node is ready, start the control plane (also called master) nodes.
+
+=== OpenShift install - control plane
+
+Power on each control plane node, verify that they get IP address and RHCOS is installed.
+
+* Verify nodes by logging in to node and checking that kubelet-service is up and running.
+** For example, use the following commands to check status of installation:
+*** `top`
+*** `journalctl -f -u kubelet`
+
+=== Openshift install - complete bootstrap
+
+```
+sh ocp-complete-bootstrap.sh
+```
+
+The command waits until bootstrap is complete.
+
+When it is complete, remove bootstrap node IP from loadbalancer configuration.
+
+* haproxy config-file: `/etc/haproxy/haproxy.cfg`
+* gobetween config-file: `/etc/gobetween/config.toml`
+
+=== Openshift install - worker nodes
+
+Start at least two worker nodes.
+
+For each worker, Certificate Signing Requests (CSR) must be approved.
+
+* Wait for pending CSRs:
+
+```
+sh ocp-helper.sh csr
+```
+
+* Approve all pending CSRs:
+
+```
+sh ocp-helper.sh csr-approve
+```
+
+* For each worker, two CSRs need to be approved. After CSRs have been approved, the worker nodes will be ready.
+
+* Use the following command to check node status:
+
+```
+sh ocp-helper.sh nodes
+```
+
+* Wait until all nodes are 'Ready'.
+
+=== Openshift install - wait
+
+Follow the status of cluster operators:
+```
+sh ocp-helper.sh clusteroperators
+```
+
+Wait until all operators are available and none are progressing or degraded.
+
+=== Openshift install - complete installation
+
+```
+sh ocp-complete-install.sh
+```
+
+Make note of the information.
+
+OpenShift is now installed.
+

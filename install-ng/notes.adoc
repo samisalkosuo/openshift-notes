@@ -1,0 +1,32 @@
+# uusi versio skripteistä
+
+* airgapped/online UPI
+* https://docs.openshift.com/container-platform/4.10/installing/installing_platform_agnostic/installing-platform-agnostic.html#installation-minimum-resource-requirements_installing-platform-agnostic
+* testaa virtualboxissa
+* VM:t
+** bastion
+** jump
+** loadbalancer (haproxy)
+** bootstrap
+** 3x master
+** 2x worker
+* ympäristömuuttuja tiedosto
+* skriptit siten että mahdollisimman self container
+** eli esim dns scriptissä kaikki tarvittava 
+** siirrettävä eri koneille yhdessä muuttujatiedoston kanssa
+* scripts
+** dns, lb, dhcp,mirror, registry,
+* airgap sama kuin online
+** paitsi omasta rekisteristä
+** voidaan tehdä eka online ja sitten airgapped
+* prereqs
+* dns, lb
+* paketointi scrkiptit
+  - loadbalancer, gobetween
+  - repo packaging
+  - client packaging
+* mirroring
+** OCP images to files
+* operatorhub mirroring
+* registry packaging
+** quay containers => ei Redhatin mirror registryä koska se ei aina toimi 

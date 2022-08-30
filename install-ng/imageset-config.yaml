@@ -1,0 +1,26 @@
+#imageset configuration for oc-mirror command
+apiVersion: mirror.openshift.io/v1alpha1
+kind: ImageSetConfiguration
+archiveSize: 2
+storageConfig:
+  local:
+    #path to image set metadata, when updating/mirroring new images this metadata must be available
+    path: /root/mirror-metadata/
+mirror:
+  ocp:
+    channels:
+      - name: fast-4.10
+        versions:
+        - '4.10.26'
+  operators:
+    #get operators and versions, see https://medium.com/red-hat-openshift-operator-versions/recently-i-was-asked-if-there-was-a-way-to-get-the-operator-version-for-every-operator-available-ceb27ed29923
+    - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.10
+      headsOnly: false
+      packages:
+#       - name: odf-operator
+#         startingVersion: '4.10.5'
+        - name: web-terminal
+          startingVersion: '1.5.1'
+  additionalImages:
+    - name: registry.redhat.io/ubi8/ubi:latest
+    - name: docker.io/kazhar/openldap-demo:0.12

@@ -1,0 +1,46 @@
+= OpenShift UPI-installation
+
+This directory includes instructions and scripts to install OpenShift in User Provisioned Infrastructure, both online and airgapped environments.
+
+== Services
+
+The following services are required for OpenShift UPI installation.
+
+* NTP.
+* DNS.
+* PXE.
+** Includes: DHCP, TFTP and Apache HTTP server.
+* Load balancer.
+** HAProxy, https://gobetween.io/[Gobetween] or any other (layer 4) load balancer.
+* Image registry.
+** Required in airgapped environment.
+** https://www.projectquay.io/[Quay], https://hub.docker.com/_/registry[registry-container] or some other registry.
+
+== Assumptions
+
+* Jump-server
+** in airgapped environment.
+** Has internet access.
+* Bastion-host, RHEL-based v8.x, is installed and ready to be used.
+** Used to install/manage OpenShift.
+** Does not have internet access.
+*** Installation files are copied from jump-server to airgapped bastion-host.
+* Access to VMWare or other infrastructure provider to create nodes and getting node information.
+* No services exist in the environment.
+** But if any services do exist, they can be used instead.
+* All services are installed on the bastion-host.
+** But each of the aforementioned service can be on a separate server.
+
+== Online
+
+If OpenShift will be installed on online environment:
+
+* xref:README_online.adoc[README - online UPI install]
+
+== Airgapped 
+
+If OpenShift will be installed on airgapped environment:
+
+* xref:README_airgapped.adoc[README - airgapped UPI install]
+
+
