@@ -10,7 +10,7 @@ The main purpose of this repository is to provide helpers to install OpenShift i
 == Architecture
 
 .OpenShift architecture
-image::images/OpenShift_architecture_20210917.svg[]
+image::images/ocp-architecture-20210917.png[]
 
 The architecture of OpenShift in the context of this repository.
 

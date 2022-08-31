@@ -13,7 +13,9 @@ https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner[Kubernetes NF
 * Follow instructions in https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner.
 * After storage class is created, optionally set _managed-nfs-storage_-storageclass as default:
 
-`oc patch storageclass managed-nfs-storage -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'`
+```
+oc patch storageclass managed-nfs-storage -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
 
 === Airgapped installation
 
@@ -51,7 +53,10 @@ Since OpenShift does not have access to Internet, extra steps are required to in
 ** `oc get sc`
 ** And you should see _managed-nfs-storage_-storageclass.
 * Optionally set _managed-nfs-storage_-storageclass as default:
-** `oc patch storageclass managed-nfs-storage -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'`
+
+```
+oc patch storageclass managed-nfs-storage -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
 
 ==== NFS server
 
@@ -74,12 +79,16 @@ Internal image registry is not initially available in OpenShift UPI online or ai
 * Configure a default storageclass (like the NFS provisioner).
 * Patch image registry operator configuration:
 
-`oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'`
+```
+oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'
+```
 
 * The patch-command creates also default route for the registry.
 ** Get default route using command:
 
-`oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'`
+```
+oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'
+```
 
 * Registry can not be used until an identity provider (for example LDAP or HTPasswd) has been configured.
 ** See later sections about LDAP and HTPasswd identity provider.
@@ -110,7 +119,11 @@ Update global pull secret:
 
 * Open shell and use `oc login` to login to OpenShift using cluster administrator rights.
 * Script link:external-registry/update_global_pull_secret.sh[update_global_pull_secret.sh] is used to add or edit global pull secret:
-** `sh update_global_pull_secret.sh https://external-registry.forum.fi.ibm.com:5001 admin passw0rd`
+
+```
+sh update_global_pull_secret.sh https://external-registry.forum.fi.ibm.com:5001 admin passw0rd
+```
+
 * Global pull secret is rolled out to each node in the cluster.
 
 ==== Images
@@ -174,11 +187,15 @@ Use existing cluster admin (kubeadmin for example) to add new cluster admins.
 
 * Add individual user as cluster admin:
 
-`oc adm policy add-cluster-role-to-user cluster-admin <user>`
+```
+oc adm policy add-cluster-role-to-user cluster-admin <user>
+```
 
 * Add a group as cluster-admins:
 
-`oc adm policy add-cluster-role-to-group cluster-admin <group>`
+```
+oc adm policy add-cluster-role-to-group cluster-admin <group>
+```
 
 == HTPasswd identity provider
 
@@ -215,9 +232,17 @@ Change ingress certificate:
 ** Example files: _ocp_ingress.crt_ and _ocp_ingress.key_.
 * Login as cluster admin.
 * Add certificate as a secret:
-** `oc -n openshift-ingress create secret tls custom-ingress-cert --cert=ocp_ingress.crt --key=ocp_ingress.key`
+
+```
+oc -n openshift-ingress create secret tls custom-ingress-cert --cert=ocp_ingress.crt --key=ocp_ingress.key
+```
+
 * Patch Ingress operator to use custom certificate:
-** `oc patch --type=merge -n openshift-ingress-operator ingresscontrollers/default --patch '{"spec":{"defaultCertificate":{"name":"custom-ingress-cert"}}}'`
+
+```
+oc patch --type=merge -n openshift-ingress-operator ingresscontrollers/default --patch '{"spec":{"defaultCertificate":{"name":"custom-ingress-cert"}}}'
+```
+
 * Router pods are restarted and will reflect new Ingress certificate.
 
 == Upgrade airgapped OpenShift
