@@ -5,6 +5,7 @@ This repository includes OpenShift related notes, scripts and so on.
 The main purpose of this repository is to provide helpers to install OpenShift in on-premise environment.
 
 * link:install/[install]-directory includes instructions and scripts to install OpenShift in online or airgapped environments.
+* link:install-ng/[install-ng]-directory includes also instructions and scripts to install OpenShift in online or airgapped environments (UPI only).
 * link:operation/[operation]-directory includes instructions and scripts related to configuring/operating OpenShift.
 
 == Architecture
