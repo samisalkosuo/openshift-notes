@@ -43,9 +43,12 @@ Since OpenShift does not have access to Internet, extra steps are required to in
 * Set IP address and path of your NFS server.
 * Login as cluster administrator using oc-client.
 * Setup provisioner:
-** `oc create -f rbac.yaml`
-** `oc create -f deployment.yaml`
-** `oc create -f class.yaml`
+```
+oc apply -f rbac.yaml`
+oc apply -f deployment.yaml
+oc apply -f class.yaml
+```
+
 * Test by creating persistent volume claim:
 ** `oc create -f test-claim.yaml`
 ** There should test-claim directory in the NFS server.
@@ -429,7 +432,6 @@ oc replace --raw "/api/v1/namespaces/annoying-namespace/finalize" -f ./tmp.json
 oc get namespace |grep Terminating
 ```
 
-
 == Change VSphere configuration
 
 * Change VSphere username and password by modifying `vsphere-creds` secret:
@@ -442,3 +444,54 @@ echo -n "OpenShifttestpassword" | base64 -w0
 ```
 
 More detailed instructions: https://access.redhat.com/solutions/4618011.
+
+== Bastion as router
+
+If your environment includes internal network that can be accessed only via bastion (or jump server), 
+you can set up bastion as router for OpenShift nodes.
+
+Assumptions:
+
+* Bastion is RHEL 8.x (or Rocky/CentOS 8.x).
+* Bastion has required services: DNS, DHCP/PXE, etc.
+* Bastion uses firewalld-service.
+* Bastion has two networks:
+** public network with access to internet, for example: _ens192_
+** internal network that has OpenShift nodes, for example: _ens224_
+
+Configuring bastion as router requires just a few firewall commands.
+
+* Default firewall zone is public and that should be _ens192_-network.
+```
+firewall-cmd --get-default-zone
+```
+* Check active zones:
+```
+firewall-cmd --get-active-zones
+```
+* Output is similar to this:
+```
+public
+  interfaces: ens192 ens224
+```
+* Both interfaces are in public zone.
+* Set _ens224_ to internal zone:
+```
+firewall-cmd --zone internal --change-interface ens224 --permanent
+```
+* Add masquerade (NAT), to public zone:
+```
+firewall-cmd --zone public --add-masquerade --permanent
+```
+* Reload firewall rules:
+```
+firewall-cmd --reload
+```
+* Configure bastion as router for internal network and internal network has access to internet via bastion.
+* Remember to open services/ports to internal zone. For example:
+```
+firewall-cmd --add-service=dns --zone=internal --permanent
+firewall-cmd --add-port=22623/tcp --zone=internal --permanent
+firewall-cmd --reload
+```
+
