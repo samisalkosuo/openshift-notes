@@ -142,10 +142,10 @@ EOF
         nmcli con down "$connection" && nmcli con up "$connection"
     done
 
-    echo "Open DNS ports..."
-    firewall-cmd --add-port=53/udp --add-port=53/tcp
+#    echo "Open DNS ports..."
+#    firewall-cmd --add-port=53/udp --add-port=53/tcp
     #persist firewall settings
-    firewall-cmd --runtime-to-permanent
+#    firewall-cmd --runtime-to-permanent
 
     echo "Check CoreDNS status:"
     echo "  systemctl status coredns"

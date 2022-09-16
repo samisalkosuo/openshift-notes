@@ -30,10 +30,10 @@ function setupNTPServer
             systemctl restart chronyd
             echo "Configuring chrony as NTP server in this host...done."
 
-            echo "Open NTP port..."
-            firewall-cmd --add-port=123/udp
-            #persist firewall settings
-            firewall-cmd --runtime-to-permanent
+            # echo "Open NTP port..."
+            # firewall-cmd --add-port=123/udp
+            # #persist firewall settings
+            # firewall-cmd --runtime-to-permanent
         fi
     else
         error "NTP configuration file $__ntp_config_file does not exist. Can not setup NTP server."

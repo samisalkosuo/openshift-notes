@@ -127,7 +127,23 @@ The script does the following:
 * If you need to customize `install-config.yaml`, edit it in link:ocp-prepare-install.sh[ocp-prepare-install.sh].
 * Adds custom CA-certificate and image content source policy in airgapped environment.
 
-The environment is now ready to initiate OpenShift UPI installation.
+=== Firewall
+
+Open services and ports, in public-zone:
+
+```
+sh firewall-open.sh public
+```
+
+If you need to close services and ports:
+
+Open services and ports, in public-zone:
+
+```
+sh firewall-close.sh public
+```
+
+If any of the services is on another server, remember to open firewall in other servers as well.
 
 === OpenShift install - bootstrap
 

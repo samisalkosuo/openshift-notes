@@ -25,8 +25,6 @@ set -e
 
 function mirrorImages 
 {
-    mkdir -p $XDG_RUNTIME_DIR/containers
-    cat $OMG_OCP_PULL_SECRET_FILE | jq . > $XDG_RUNTIME_DIR/containers/auth.json
 
     echo "Mirroring images..."
 
@@ -35,7 +33,8 @@ function mirrorImages
     oc mirror --config=./imageset-config.yaml file://$localDir/$DOWNLOAD_DIR
 
     echo "Mirroring images...done."
-
+    echo ""
+    echo "Copy/move $DOWNLOAD_DIR/mirror_seq*.tar file(s) to airgapped environment."
 }
 
 function packageImages
@@ -46,4 +45,5 @@ function packageImages
 }
 
 mirrorImages
-packageImages
+
+#packageImages

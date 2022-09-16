@@ -71,10 +71,10 @@ EOF
     systemctl daemon-reload
     systemctl enable httpd
     systemctl restart httpd
-    echo "Open Apache ports..."
-    firewall-cmd --add-port=${OMG_OCP_APACHE_PORT}/tcp
+#    echo "Open Apache ports..."
+#    firewall-cmd --add-port=${OMG_OCP_APACHE_PORT}/tcp
     #persist firewall settings
-    firewall-cmd --runtime-to-permanent
+#    firewall-cmd --runtime-to-permanent
 
     echo "Configuring Apache...done."
 }
@@ -132,10 +132,10 @@ EOF
     systemctl enable dhcpd
     systemctl restart dhcpd
 
-    echo "Open DHCP/TFTP ports..."
-    firewall-cmd --add-port=67/udp --add-port=69/udp
+#    echo "Open DHCP/TFTP ports..."
+#    firewall-cmd --add-port=67/udp --add-port=69/udp
     #persist firewall settings
-    firewall-cmd --runtime-to-permanent
+#    firewall-cmd --runtime-to-permanent
 
 }
 

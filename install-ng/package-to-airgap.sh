@@ -7,7 +7,8 @@ if [ ! -f "/usr/local/bin/oc" ]; then
 fi
 
 RHCOS_DIR=$(pwd)/rhcos
-OCP_IMAGES_DIR=$(pwd)/ocp-images
+OC_IMAGE_DIR_NAME=ocp-images
+OCP_IMAGES_DIR=$(pwd)/$OC_IMAGE_DIR_NAME
 
 whereis podman |grep "/usr/bin/podman" &> /dev/null
 rv=$?
@@ -44,15 +45,17 @@ if [ ! -d "$OCP_IMAGES_DIR" ]; then
     exit 1
 fi
 
+DIST_DIR=dist
 #copy binaries and other files to dist-directory
 echo "Creating dist-directory..."
-mkdir -p dist/bin
-cp -r /usr/local/bin/* dist/bin/
-mv $RHCOS_DIR dist/
-mv $OCP_IMAGES_DIR dist/
-mv registry-images.tar dist/
-mv local-repo.tar dist/
-cp *.sh *.adoc *.yaml dist/
+mkdir -p $DIST_DIR/bin
+cp -r /usr/local/bin/* $DIST_DIR/bin/
+mv $RHCOS_DIR $DIST_DIR/
+mkdir -p $DIST_DIR/$OC_IMAGE_DIR_NAME
+mv $OCP_IMAGES_DIR/*tar $DIST_DIR/$OC_IMAGE_DIR_NAME/
+mv registry-images.tar $DIST_DIR/
+mv local-repo.tar $DIST_DIR/
+cp *.sh *.adoc *.yaml $DIST_DIR/
 echo "Creating dist-directory...done."
 
 echo "Copy/move dist-directory to airgapped environment."

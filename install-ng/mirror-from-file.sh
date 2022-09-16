@@ -15,7 +15,7 @@ REGISTRY_USER_PASSWORD=passw0rd
 REGISTRY_SERVER=$OMG_OCP_MIRROR_REGISTRY_HOST_NAME.$OMG_OCP_DOMAIN:$OMG_OCP_MIRROR_REGISTRY_PORT
 
 #repo in mirror registry
-OPENSHIFT_REPO=openshift
+OPENSHIFT_REPO=mirror
 
 
 function loginToRegistry
@@ -32,11 +32,21 @@ function loginToRegistry
   
 }
 
+function editImageContentSourcePolicy
+{
+  local resultDir=$(ls -1tr oc-mirror-workspace/ |tail -1)
+  cat oc-mirror-workspace/$resultDir/imageContentSourcePolicy.yaml |grep "^  - mirr\|^    [-s]" > images.yaml
+}
+
+
+
 function mirrorImagesFromFile
 {
     echo "Mirroring images..."
 
     oc mirror --from=./ocp-images/ docker://$REGISTRY_SERVER/$OPENSHIFT_REPO
+
+    editImageContentSourcePolicy
 
     echo "Mirroring images...done."
 }

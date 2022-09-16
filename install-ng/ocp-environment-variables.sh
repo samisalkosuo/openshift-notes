@@ -12,7 +12,7 @@ export OMG_OCP_PULL_SECRET_FILE=/root/pull-secret.json
 #OCP version to install/upgrade
 #check https://mirror.openshift.com/pub/openshift-v4/clients/ocp/
 #for desired version 
-export OMG_OCP_VERSION=4.10.26
+export OMG_OCP_VERSION=4.10.30
 
 #Red Hat mirror registry
 #check latest version

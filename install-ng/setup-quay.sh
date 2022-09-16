@@ -214,10 +214,10 @@ EOF
     systemctl daemon-reload
     systemctl restart ${__service_name} && systemctl enable ${__service_name}
 
-    echo "Open registry ports..."
-    firewall-cmd --add-port=$REGISTRY_HTTP_PORT/tcp --add-port=$REGISTRY_HTTPS_PORT/tcp
-    #persist firewall settings
-    firewall-cmd --runtime-to-permanent
+    # echo "Open registry ports..."
+    # firewall-cmd --add-port=$REGISTRY_HTTP_PORT/tcp --add-port=$REGISTRY_HTTPS_PORT/tcp
+    # #persist firewall settings
+    # firewall-cmd --runtime-to-permanent
 
     #sleeping 5 seconds so that postgres starts..
     sleep 5

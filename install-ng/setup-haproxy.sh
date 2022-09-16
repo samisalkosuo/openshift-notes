@@ -168,11 +168,11 @@ EOF
     systemctl enable haproxy
     systemctl restart haproxy
 
-    echo "Open HTTP/HTTPS ports..."
-    firewall-cmd --add-port=80/tcp --add-port=443/tcp --add-port=8080/tcp 
-    echo "Open OpenShift API ports..."
-    firewall-cmd --add-port=6443/tcp --add-port=22623/tcp 
-    firewall-cmd --runtime-to-permanent
+    # echo "Open HTTP/HTTPS ports..."
+    # firewall-cmd --add-port=80/tcp --add-port=443/tcp --add-port=8080/tcp 
+    # echo "Open OpenShift API ports..."
+    # firewall-cmd --add-port=6443/tcp --add-port=22623/tcp 
+    # firewall-cmd --runtime-to-permanent
     
     echo "Configuring and starting HAProxy...done."
 

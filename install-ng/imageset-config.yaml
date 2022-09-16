@@ -1,26 +1,46 @@
 #imageset configuration for oc-mirror command
 apiVersion: mirror.openshift.io/v1alpha1
 kind: ImageSetConfiguration
-archiveSize: 2
+#limit archive size to specified GB
+#archiveSize: 2
 storageConfig:
   local:
     #path to image set metadata, when updating/mirroring new images this metadata must be available
-    path: /root/mirror-metadata/
+    path: /root/files/mirror-metadata/
 mirror:
   ocp:
     channels:
-      - name: fast-4.10
+      - name: stable-4.10
         versions:
-        - '4.10.26'
+        - '4.10.30'
   operators:
-    #get operators and versions, see https://medium.com/red-hat-openshift-operator-versions/recently-i-was-asked-if-there-was-a-way-to-get-the-operator-version-for-every-operator-available-ceb27ed29923
+    #use "oc-mirror list operators" to get operators
+    #or
+    #to get operators and versions, see https://medium.com/red-hat-openshift-operator-versions/recently-i-was-asked-if-there-was-a-way-to-get-the-operator-version-for-every-operator-available-ceb27ed29923
+    #command:
+    # oc get packagemanifests | grep 'Red Hat Operators' | awk '{print $1}' | xargs -L1 oc get packagemanifests -o yaml | grep "currentCSV:" | awk '{print $3}' | sort
     - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.10
       headsOnly: false
       packages:
-#       - name: odf-operator
-#         startingVersion: '4.10.5'
+        - name: advanced-cluster-management
+          startingVersion: '2.6.0'
+        - name: odf-operator
+          startingVersion: '4.10.5'
+        - name: local-storage-operator
+          startingVersion: '4.10.0-202208150436'
         - name: web-terminal
-          startingVersion: '1.5.1'
+          startingVersion: '1.5.1-0.1661829403.p'
+  #note: official images in docker registry requires 'library'
+  #for example: docker.io/library/python:3.9.7-alpine3.14
   additionalImages:
     - name: registry.redhat.io/ubi8/ubi:latest
+    - name: k8s.gcr.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2
+    - name: docker.io/library/python:3.9.7-alpine3.14
     - name: docker.io/kazhar/openldap-demo:0.12
+    - name: docker.io/alpine/openssl:latest
+    - name: docker.io/osixia/openldap:1.5.0
+    # - name: docker.io/gitlab/gitlab-ee:15.3.3-ee.0
+    # - name: docker.io/phpipam/phpipam-cron:latest   
+    # - name: docker.io/phpipam/phpipam-www:latest
+    # - name: docker.io/library/mariadb:latest
+

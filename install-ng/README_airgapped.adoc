@@ -57,20 +57,32 @@ sh download-rhcos.sh
 sh download-registry.sh
 ```
 
+////
 * Mirror OpenShift images:
 
 ```
 sh download-ocp-images.sh
 ```
 ////
-* Mirror OpenShift images, including operators and additional images.
-** Configure link:imageset-config.yaml[imageset-config.yaml]
+
+Mirroring is done use https://docs.openshift.com/container-platform/4.10/installing/disconnected_install/installing-mirroring-disconnected.html#installation-adding-registry-pull-secret_installing-mirroring-disconnected[oc-client mirror-plugin]
+
+* Create podman auth-file from pull-secret.json:
+```
+mkdir -p $XDG_RUNTIME_DIR/containers
+cat $OMG_OCP_PULL_SECRET_FILE | jq . > $XDG_RUNTIME_DIR/containers/auth.json
+```
+* Podman auth-file is used by `oc mirror`-plugin.
+* Login to any other registries, for example icr.io, using `podman login`.
+** Login credentials are stored in auth.json file.
+* Configure link:imageset-config.yaml[imageset-config.yaml] and include all OpenShift version, operators and additional images to the config-file. 
+* Mirror OpenShift images:
 
 ```
 sh mirror-to-file.sh
 ```
-////
-* Move files to dist-directory:
+
+* Package/move files to dist-directory:
 
 ```
 sh package-to-airgap.sh
@@ -85,7 +97,7 @@ tar -cf dist.tar dist/
 == Copy to airgapped bastion
 
 * Copy dist-directory or `dist.tar` to airgapped bastion.
-* Extract file, if you copied dist.tar:
+* If you copied dist.tar, extract file:
 
 ```
 tar -xf dist.tar
@@ -251,15 +263,31 @@ Quay-registry uses three systemd-services:
 * quay-redis
 * quay-registry
 
+If registry-server is not the bastion-server, copy following files to registry-server.
+```
+ocp-environment-variables.sh
+setup-quay.sh
+dnf-install-airgapped.sh
+certs/
+dnf-install-airgapped.sh
+local-repo.tar
+```
+
+
 === Create user and organization
 
-* After setting up Quay, login to registry and create user with name `admin` and password the same as `REGISTRY_USER_PASSWORD` in link:upload-ocp-images.sh[upload-ocp-images.sh].
-* Login to Quay as admin-user and create new organization with name `openshift`
+After setting up Quay, complete the following steps.
+
+* Open registry web page.
+* Create user with name `admin` and password the same as `REGISTRY_USER_PASSWORD` in link:upload-ocp-images.sh[upload-ocp-images.sh].
+* Login to Quay as admin-user and create new organization with name `mirror`.
+** `mirror`-organization is used as namespace where images are pushed.
 
 == Mirror OpenShift images - airgapped
 
 Mirror OpenShift images to airgapped registry.
 
+////
 ```
 sh upload-ocp-images.sh
 ```
@@ -269,12 +297,9 @@ sh upload-ocp-images.sh
 sh mirror-from-file.sh
 ```
 
-Mirroring creates `oc-mirror-workspace/`-directory and results-directory. Results-directory includes `imageContentSourcePolicy.yaml`-file that includes image sources required to install OpenShift in airgapped environment.
+Mirroring creates `oc-mirror-workspace/`-directory and results-directory. Results-directory includes `imageContentSourcePolicy.yaml`-file that includes image sources required to install OpenShift in airgapped environment.The script modifies that file and copies it as 'images.yaml'. It is used in `install-config.yaml`.
 
-* Copy `imageContentSourcePolicy.yaml` to dist-directory.
-* Rename file to `images.yaml`.
-* Edit `images.yaml` and remove all but mirrors and sources.
-* After editing the `images.yaml`, it looks like this:
+* Verify that the `images.yaml` includes mirror entries like this:
 
 ```
   - mirrors:
@@ -283,38 +308,10 @@ Mirroring creates `oc-mirror-workspace/`-directory and results-directory. Result
   - mirrors:
     - registry.local.net:443/openshift/redhat
     source: registry.redhat.io/redhat
-  - mirrors:
-    - registry.local.net:443/openshift/web-terminal-tech-preview
-    source: registry.redhat.io/web-terminal-tech-preview
-  - mirrors:
-    - registry.local.net:443/openshift/devworkspace
-    source: registry.redhat.io/devworkspace
-  - mirrors:
-    - registry.local.net:443/openshift/openshift4
-    source: registry.redhat.io/openshift4
-  - mirrors:
-    - registry.local.net:443/openshift/ubi8-micro
-    source: registry.redhat.io/ubi8-micro
-  - mirrors:
-    - registry.local.net:443/openshift/kazhar
-    source: docker.io/kazhar
-  - mirrors:
-    - registry.local.net:443/openshift/ubi8
-    source: registry.redhat.io/ubi8
-  - mirrors:
-    - registry.local.net:443/openshift/operator-framework
-    source: quay.io/operator-framework
-  - mirrors:
-    - registry.local.net:443/openshift/openshift/release
-    source: quay.io/openshift-release-dev/ocp-release
-  - mirrors:
-    - registry.local.net:443/openshift/openshift/release
-    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
-
 ```
 
-* Image source are added to `install-config.yaml` in the next step.
-////
+* `images.yaml` is  added to `install-config.yaml` in the next step.
+
 
 == OpenShift install - airgapped
 

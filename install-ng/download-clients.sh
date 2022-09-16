@@ -85,6 +85,13 @@ function downloadKubeterminal
     podman rmi kazhar/kubeterminal
     echo "Copying kubeterminal.bin to /usr/local/bin/..."
     mv kubeterminal.bin /usr/local/bin/
+
+    #get sources
+    local dir=$(pwd)
+    cd /usr/local/bin
+    git clone https://github.com/samisalkosuo/kubeterminal
+    cd $dir
+    
     echo "Downloading kubeterminal.bin...done."
 }
 
