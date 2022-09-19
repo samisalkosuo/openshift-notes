@@ -52,7 +52,7 @@ mkdir -p $DIST_DIR/bin
 cp -r /usr/local/bin/* $DIST_DIR/bin/
 mv $RHCOS_DIR $DIST_DIR/
 mkdir -p $DIST_DIR/$OC_IMAGE_DIR_NAME
-mv $OCP_IMAGES_DIR/*tar $DIST_DIR/$OC_IMAGE_DIR_NAME/
+cp $OCP_IMAGES_DIR/*tar $DIST_DIR/$OC_IMAGE_DIR_NAME/
 mv registry-images.tar $DIST_DIR/
 mv local-repo.tar $DIST_DIR/
 cp *.sh *.adoc *.yaml $DIST_DIR/

@@ -23,22 +23,22 @@ mirror:
       headsOnly: false
       packages:
         - name: advanced-cluster-management
-          startingVersion: '2.6.0'
+          startingVersion: '2.6.1'
         - name: odf-operator
           startingVersion: '4.10.5'
         - name: local-storage-operator
-          startingVersion: '4.10.0-202208150436'
+          startingVersion: '4.10.0-202208241855'
         - name: web-terminal
           startingVersion: '1.5.1-0.1661829403.p'
   #note: official images in docker registry requires 'library'
   #for example: docker.io/library/python:3.9.7-alpine3.14
   additionalImages:
     - name: registry.redhat.io/ubi8/ubi:latest
-    - name: k8s.gcr.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2
-    - name: docker.io/library/python:3.9.7-alpine3.14
-    - name: docker.io/kazhar/openldap-demo:0.12
-    - name: docker.io/alpine/openssl:latest
-    - name: docker.io/osixia/openldap:1.5.0
+    # - name: k8s.gcr.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2
+    # - name: docker.io/library/python:3.9.7-alpine3.14
+    # - name: docker.io/kazhar/openldap-demo:0.12
+    # - name: docker.io/alpine/openssl:latest
+    # - name: docker.io/osixia/openldap:1.5.0
     # - name: docker.io/gitlab/gitlab-ee:15.3.3-ee.0
     # - name: docker.io/phpipam/phpipam-cron:latest   
     # - name: docker.io/phpipam/phpipam-www:latest

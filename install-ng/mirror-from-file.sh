@@ -34,8 +34,12 @@ function loginToRegistry
 
 function editImageContentSourcePolicy
 {
-  local resultDir=$(ls -1tr oc-mirror-workspace/ |tail -1)
+  local resultDir=$(ls -1tr oc-mirror-workspace/ | grep results | tail -1)
   cat oc-mirror-workspace/$resultDir/imageContentSourcePolicy.yaml |grep "^  - mirr\|^    [-s]" > images.yaml
+  #change any docker.io to registry.docker.io
+  #this is because mirror plugin validates registry using host.domain.suffix
+  sed -i "s/ docker.io/ registry.docker.io/g" images.yaml
+
 }
 
 

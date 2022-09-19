@@ -126,6 +126,7 @@ The script does the following:
 * Creates ignition files using `install-config.yaml` and moves them to directory served by Apache.
 * If you need to customize `install-config.yaml`, edit it in link:ocp-prepare-install.sh[ocp-prepare-install.sh].
 * Adds custom CA-certificate and image content source policy in airgapped environment.
+* Generated `install-config.yaml` is in `/tmp`-directory.
 
 === Firewall
 

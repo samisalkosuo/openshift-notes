@@ -253,6 +253,8 @@ Note that CA-certificate is also used when installing OpenShift from the airgapp
 
 == Setup Quay-registry - airgapped
 
+Open source Quay-registry uses directory `/opt/quay` to store images. Make sure that there are enough space, or change the directory by editing `setup-quay.sh`.
+
 ```
 sh setup-quay.sh
 ```
@@ -269,8 +271,8 @@ ocp-environment-variables.sh
 setup-quay.sh
 dnf-install-airgapped.sh
 certs/
-dnf-install-airgapped.sh
 local-repo.tar
+registry-images.tar
 ```
 
 
