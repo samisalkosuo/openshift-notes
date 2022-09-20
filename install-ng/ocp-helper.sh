@@ -24,7 +24,7 @@ function usage
   echo "  csr-approve                           - Approve all pending CSRs."
   echo "  clusteroperators                      - Watch OpenShift cluster operators."
   echo "  disable-operatorhub-sources           - Disable default OperatorHub sources in airgapped environment."
-  echo "  place-router-pods <worker1> <worker2> - Placer router pods to given worker nodes."
+  echo "  place-router-pods <worker1> <worker2> - Place router pods to given worker nodes."
   echo "  set-default-storageclass <sc-name>    - Set give storageclass as default."
   exit 1
 }

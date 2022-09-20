@@ -1,4 +1,6 @@
 = OpenShift airgapped UPI-installation
+:toc: left
+:toc-title: Table of Contents
 
 Install OpenShift using UPI in an airgapped environment. 
 
@@ -9,6 +11,7 @@ Tested with OpenShift 4.10.
 * This repository downloaded/cloned to Linux jump-server.
 * Jump-server with internet access.
 * Bastion-server in airgapped environment.
+* Jump-server and bastion-server versions must be the same, especially if bastion does not have access to package repository.
 
 == Setup environment variables - online
 
@@ -300,6 +303,7 @@ sh mirror-from-file.sh
 ```
 
 Mirroring creates `oc-mirror-workspace/`-directory and results-directory. Results-directory includes `imageContentSourcePolicy.yaml`-file that includes image sources required to install OpenShift in airgapped environment.The script modifies that file and copies it as 'images.yaml'. It is used in `install-config.yaml`.
+The results-directory includes also catalog source yaml-file. Apply catalog source yaml after the installation to see operators in the operator hub.
 
 * Verify that the `images.yaml` includes mirror entries like this:
 

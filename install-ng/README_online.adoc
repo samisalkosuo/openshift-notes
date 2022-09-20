@@ -1,4 +1,6 @@
 = OpenShift online UPI-installation
+:toc: left
+:toc-title: Table of Contents
 
 Install OpenShift using UPI in an online environment.
 
@@ -227,3 +229,13 @@ Make note of the information.
 
 OpenShift is now installed.
 
+==== Airgapped environment
+
+* Disable default operatorhub sources:
+```
+sh ocp-helper.sh disable-operatorhub-sources
+```
+* Place router pods to workers which are configured in load balancer:
+```
+sh ocp-helper.sh place-router-pods <worker1> <worker2>
+```

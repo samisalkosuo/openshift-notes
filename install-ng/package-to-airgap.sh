@@ -59,4 +59,4 @@ cp *.sh *.adoc *.yaml $DIST_DIR/
 echo "Creating dist-directory...done."
 
 echo "Copy/move dist-directory to airgapped environment."
-echo "Optionally tar dist-directory: tar -xf dist.tar dist/"
+echo "Optionally tar dist-directory: tar -cf dist.tar dist/"
