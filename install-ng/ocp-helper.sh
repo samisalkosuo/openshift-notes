@@ -24,6 +24,7 @@ function usage
   echo "  csr-approve                           - Approve all pending CSRs."
   echo "  clusteroperators                      - Watch OpenShift cluster operators."
   echo "  disable-operatorhub-sources           - Disable default OperatorHub sources in airgapped environment."
+  echo "  patch-internal-image-registry         - Patch internal image registry to use default storageclass."
   echo "  place-router-pods <worker1> <worker2> - Place router pods to given worker nodes."
   echo "  set-default-storageclass <sc-name>    - Set give storageclass as default."
   exit 1
@@ -103,6 +104,17 @@ function setDefaultStorageClass
     oc patch storageclass $storageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 }
 
+function patchImageRegistryToUseDefaultStorageClass
+{
+    oc get sc |grep "(default)" > /dev/null
+    local rv=$?
+    if [ $rv -ne 0 ]; then
+        echo "Default Storageclass not set."
+        exit 1
+    fi
+    oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","defaultRoute":true,"storage":{"pvc":{"claim":""}}}}'
+
+}
 
 case "$1" in
     nodes)
@@ -119,6 +131,9 @@ case "$1" in
     ;;
     disable-operatorhub-sources)
         disableOperatorHubSources
+    ;;
+    patch-internal-image-registry)
+        patchImageRegistryToUseDefaultStorageClass
     ;;
     place-router-pods)
         placeRouterPods $2 $3
