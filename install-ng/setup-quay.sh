@@ -258,7 +258,8 @@ EOF
     #install pg_trgm module
     podman exec -it ${POSTGRES_SERVICE_NAME} /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U ${POSTGRES_USER}'
 
-    local __ipaddress=$(podman inspect -f "{{.NetworkSettings.IPAddress}}" ${POSTGRES_SERVICE_NAME})
+    local __ipaddress=$(hostname --all-ip-addresses | awk '{print $1}')
+    #local __ipaddress=$(podman inspect -f "{{.NetworkSettings.IPAddress}}" ${POSTGRES_SERVICE_NAME})
     echo $__ipaddress > IP-${POSTGRES_SERVICE_NAME}
 
 }
@@ -289,7 +290,9 @@ EOF
     #sleeping 5 seconds so that redis starts..
     sleep 5
 
-    local __ipaddress=$(podman inspect -f "{{.NetworkSettings.IPAddress}}" ${REDIS_SERVICE_NAME})
+    #get local IP address
+    local __ipaddress=$(hostname --all-ip-addresses | awk '{print $1}')
+    #local __ipaddress=$(podman inspect -f "{{.NetworkSettings.IPAddress}}" ${REDIS_SERVICE_NAME})
     echo $__ipaddress > IP-${REDIS_SERVICE_NAME}
 
 }
