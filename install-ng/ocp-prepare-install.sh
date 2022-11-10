@@ -47,7 +47,10 @@ function ocpPrepareInstall
 
   createSSHKey
 
-
+  #as of 4.11 networktype default is OpenShiftSDN
+  #add networkType to install config if OVNKubernetes network type is required
+  #see for example https://docs.openshift.com/container-platform/4.10/installing/installing_bare_metal/installing-bare-metal-network-customizations.html
+  
   echo "creating install-config.yaml..."
   local __install_cfg_file=/tmp/install-config.yaml
   #create install-config.yaml
@@ -72,7 +75,6 @@ networking:
     hostPrefix: 23
   machineNetwork:
   - cidr: ${OMG_OCP_NODE_NETWORK_CIDR}
-  networkType: OVNKubernetes
   serviceNetwork:
   - 172.30.0.0/16
 platform:
