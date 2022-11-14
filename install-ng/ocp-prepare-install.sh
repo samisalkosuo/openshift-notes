@@ -70,7 +70,7 @@ compute:
   hyperthreading: Enabled
   replicas: 0
 networking:
-  clusterNetworks:
+  clusterNetwork:
   - cidr: 10.136.0.0/14
     hostPrefix: 23
   machineNetwork:
