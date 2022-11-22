@@ -24,6 +24,8 @@ function usage
   echo "  csr-approve                           - Approve all pending CSRs."
   echo "  clusteroperators                      - Watch OpenShift cluster operators."
   echo "  disable-operatorhub-sources           - Disable default OperatorHub sources in airgapped environment."
+  echo "  patch-global-pull-secret <registry> <user> <password>"
+  echo "                                        - Patch global pull secret using given registry details."
   echo "  patch-internal-image-registry         - Patch internal image registry to use default storageclass."
   echo "  place-router-pods <worker1> <worker2> - Place router pods to given worker nodes."
   echo "  set-default-storageclass <sc-name>    - Set give storageclass as default."
@@ -116,6 +118,32 @@ function patchImageRegistryToUseDefaultStorageClass
 
 }
 
+
+#patch global pull secret:
+#https://docs.openshift.com/container-platform/4.10/openshift_images/managing_images/using-image-pull-secrets.html#images-update-global-pull-secret_using-image-pull-secrets
+function patchGlobalPullSecret
+{
+    if [[ "$1" == "" ]]; then
+        echo "Registry not given."
+        exit 1
+    fi
+    if [[ "$2" == "" ]]; then
+        echo "User not given."
+        exit 1
+    fi
+    if [[ "$3" == "" ]]; then
+        echo "Password not given."
+        exit 1
+    fi
+    local __pullSecretFile=/tmp/global-pull-secret.json
+    #get existing pull secret
+    oc get secret/pull-secret -n openshift-config --template='{{index .data ".dockerconfigjson" | base64decode}}' > ${__pullSecretFile}
+    oc registry login --registry="$1" --auth-basic="$2:$3" --to=${__pullSecretFile}
+
+    oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=${__pullSecretFile}
+
+}
+
 case "$1" in
     nodes)
         ocpGetNodes
@@ -134,6 +162,8 @@ case "$1" in
     ;;
     patch-internal-image-registry)
         patchImageRegistryToUseDefaultStorageClass
+    ;;patch-global-pull-secret)
+        patchGlobalPullSecret $2 $3 $4
     ;;
     place-router-pods)
         placeRouterPods $2 $3
