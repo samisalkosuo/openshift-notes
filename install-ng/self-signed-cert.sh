@@ -12,6 +12,12 @@ SELFSIGNED_CACERT_ORGANIZATION="Sami Salkosuo"
 #if yes, copy CA_domain.crt to ca.crt
 COPY_CA_CERT_AS_CA_CRT=yes
 
+#if yes, copy server cert/key to server.crt and server.key
+COPY_SERVER_CERT_AS_SERVER=no
+
+#add wild card domain (*.domain) to server certificate
+ADD_WILDCARD_SERVER_CRT=no
+
 __cert_dir="$(pwd)/certs"
 __tmp_cert_dir=$__cert_dir/tmp
 mkdir -p $__tmp_cert_dir
@@ -188,6 +194,11 @@ function createSelfSignedCertUsingCA
       error "check $__cert_dir and/or delete $__csr_file"
   fi
 
+  local __wildcard=""
+  if [[ "$ADD_WILDCARD_SERVER_CRT" == "yes" ]]; then
+    __wildcard="DNS.4 = *.$__domain"
+  fi
+    
   cat > ${__csr_file} << EOF
 [req]
 default_bits = 4096
@@ -210,6 +221,7 @@ subjectAltName = @alt_names
 DNS.1 = ${__base_name}
 DNS.2 = ${__common_name}
 DNS.3 = ${__common_name}.local
+$__wildcard
 EOF
 
   local position=3
@@ -250,6 +262,14 @@ EOF
 
   #move all *srl file to temp dir and ignore any errors
   mv $__cert_dir/*.srl $__tmp_cert_dir/ &> /dev/null || true
+
+  if [[ "$COPY_SERVER_CERT_AS_SERVER" == "yes" ]]; then
+    cp $__cert_dir/${__common_name}.crt $__cert_dir/server.crt
+    cp $__cert_dir/${__common_name}.key $__cert_dir/server.key
+    cat $__cert_dir/server.crt $__cert_dir/server.key > $__cert_dir/server.pem
+  fi
+
+
 
   echo "Creating self-signed certificate using CA...done."
 #  echo "Self-signed certificate created"

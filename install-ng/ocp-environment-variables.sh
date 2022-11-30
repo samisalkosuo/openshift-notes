@@ -103,8 +103,9 @@ export OMG_OCP_DHCP_NETWORK_INTERFACE=ens224
 export OMG_OCP_DHCP_NETWORK=1.2.15.0
 export OMG_OCP_DHCP_NETWORK_MASK=255.255.255.0
 export OMG_OCP_DHCP_NETWORK_BROADCAST_ADDRESS=1.2.15.255
-#if having more than one router, NTP or DNS server, separate them using comma ','
+#network gateway (router)
 export OMG_OCP_DHCP_NETWORK_ROUTER=1.2.3.1
+#if having more than NTP or DNS server, separate them using comma ','
 export OMG_OCP_DHCP_NTP_SERVER=${OMG_NTP_SERVER_IP}
 export OMG_OCP_DHCP_DNS_SERVER=${OMG_DNS_SERVER_IP}
 #DHCP server range to dynamically give IP address
